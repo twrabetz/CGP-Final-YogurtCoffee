@@ -32,6 +32,9 @@ struct Scene {
 		glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); //n.b. wxyz init order
 		glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
+		//For collision
+		glm::vec3 radius;
+
 		//The transform above may be relative to some parent transform:
 		Transform *parent = nullptr;
 
@@ -45,6 +48,7 @@ struct Scene {
 
 		//since hierarchy is tracked through pointers, copy-constructing a transform  is not advised:
 		Transform(Transform const &) = delete;
+		Transform(Transform const&&) = delete;
 		//if we delete some constructors, we need to let the compiler know that the default constructor is still okay:
 		Transform() = default;
 	};

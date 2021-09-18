@@ -22,19 +22,33 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up;
+	} left, right, down, up, space;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
-	//hexapod leg to wobble:
-	Scene::Transform *hip = nullptr;
-	Scene::Transform *upper_leg = nullptr;
-	Scene::Transform *lower_leg = nullptr;
-	glm::quat hip_base_rotation;
-	glm::quat upper_leg_base_rotation;
-	glm::quat lower_leg_base_rotation;
-	float wobble = 0.0f;
+	Scene::Transform* player = nullptr;
+	Scene::Transform* playerModel = nullptr;
+	Scene::Transform* cameraAnchor = nullptr;
+	std::vector<Scene::Transform*> platforms;
+
+	float xMouseTravel = 0.0f;
+	float yMouseTravel = 0.0f;
+
+	//Using velocity only in the up-down axis
+	float playerVelocity = 0.0f;
+	float gravity = 200.0f;
+	float jumpStrength = 75.0f;
+
+	//Player "Squish" mechanism:
+	float squishInForce = 0.0f;
+	float squishOutForce = 0.0f;
+	float squishCompression = 0.0f;
+	float squishTransferRate = 350.0f;
+
+	bool collidedPrevFrame = false;
+
+	bool squishing() { return abs(squishCompression + squishInForce) >= 0.1f; }
 	
 	//camera:
 	Scene::Camera *camera = nullptr;

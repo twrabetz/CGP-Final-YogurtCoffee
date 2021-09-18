@@ -1,22 +1,18 @@
-# (TODO: your game's title)
+# SquidgeBall
 
-Author: (TODO: your name)
+Author: Thomas Wrabetz
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: It's a squishy ball
 
 Screen Shot:
 
 ![Screen Shot](screenshot.png)
 
-How Your Asset Pipeline Works:
-
-(TODO: describe the steps in your asset pipeline, from source files to tiles/backgrounds/whatever you upload to the PPU466.)
-
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+WASD to move, click the mouse and then move it to rotate camera. Space to jump. The ball is squishy and the further you fall, the further you bounce back up. Reach the red platform to win (spiritually, that is). If you can't reach the red platform, try harder, because as you can see by the screenshot it's totally possible.
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources: No external assets.
 
 This game was built with [NEST](NEST.md).
 

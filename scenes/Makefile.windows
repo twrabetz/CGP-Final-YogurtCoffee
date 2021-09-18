@@ -1,13 +1,21 @@
 
-BLENDER="C:\Program Files\Blender Foundation\Blender 2.90\blender.exe"
+BLENDER="blender"
 DIST=../dist
 
 all : \
     $(DIST)/hexapod.pnct \
     $(DIST)/hexapod.scene \
+    $(DIST)/SquidgeBall.pnct \
+    $(DIST)/SquidgeBall.scene \
 
 $(DIST)/hexapod.scene : hexapod.blend export-scene.py
     $(BLENDER) --background --python export-scene.py -- "hexapod.blend:Main" "$(DIST)/hexapod.scene"
 
 $(DIST)/hexapod.pnct : hexapod.blend export-meshes.py
     $(BLENDER) --background --python export-meshes.py -- "hexapod.blend:Main" "$(DIST)/hexapod.pnct" 
+
+$(DIST)/SquidgeBall.scene : SquidgeBall.blend export-scene.py
+    $(BLENDER) --background --python export-scene.py -- "SquidgeBall.blend" "$(DIST)/SquidgeBall.scene"
+
+$(DIST)/SquidgeBall.pnct : SquidgeBall.blend export-meshes.py
+    $(BLENDER) --background --python export-meshes.py -- "SquidgeBall.blend" "$(DIST)/SquidgeBall.pnct"

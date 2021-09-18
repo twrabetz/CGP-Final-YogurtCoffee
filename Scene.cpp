@@ -346,6 +346,7 @@ void Scene::set(Scene const &other, std::unordered_map< Transform const *, Trans
 		transforms.back().rotation = t.rotation;
 		transforms.back().scale = t.scale;
 		transforms.back().parent = t.parent; //will update later
+		transforms.back().radius = t.radius;
 
 		//store mapping between transforms old and new:
 		auto ret = transform_to_transform.insert(std::make_pair(&t, &transforms.back()));
