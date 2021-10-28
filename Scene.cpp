@@ -74,7 +74,9 @@ glm::mat4x3 Scene::Transform::make_world_to_local() const {
 //-------------------------
 
 glm::mat4 Scene::Camera::make_projection() const {
+	//We used https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/orthographic-projection-matrix
 	return glm::infinitePerspective( fovy, aspect, near );
+	//return glm::ortho(-10, 10, -10, 10, -10, 10);
 }
 
 //-------------------------
