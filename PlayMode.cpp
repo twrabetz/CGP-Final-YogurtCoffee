@@ -52,19 +52,6 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 });
 
 PlayMode::PlayMode() : scene(*myScene) {
-	//get pointers to leg for convenience:
-	/*for (auto& transform : scene.transforms) {
-		if (transform.name == "Hip.FL") hip = &transform;
-		else if (transform.name == "UpperLeg.FL") upper_leg = &transform;
-		else if (transform.name == "LowerLeg.FL") lower_leg = &transform;
-	}
-	if (hip == nullptr) throw std::runtime_error("Hip not found.");
-	if (upper_leg == nullptr) throw std::runtime_error("Upper leg not found.");
-	if (lower_leg == nullptr) throw std::runtime_error("Lower leg not found.");
-
-	hip_base_rotation = hip->rotation;
-	upper_leg_base_rotation = upper_leg->rotation;
-	lower_leg_base_rotation = lower_leg->rotation;*/
 
 	for (Scene::Transform& transform : scene.transforms) {
 		if (transform.name == "Player")
@@ -163,23 +150,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
-	//slowly rotates through [0,1):
-	/*wobble += elapsed / 10.0f;
-	wobble -= std::floor(wobble);
-
-	hip->rotation = hip_base_rotation * glm::angleAxis(
-		glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
-	upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
-		glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 0.0f, 1.0f)
-	);
-	lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
-		glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 0.0f, 1.0f)
-	);*/
-
 	//move the player:
 	{
 
@@ -200,7 +170,7 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 up = frame[2];
 
 		//Update velocity
-		if (!squishing())
+		/*if (!squishing())
 		{
 			playerVelocity += abs(squishOutForce) > 15.0f ? squishOutForce : 0.0f;
 			squishOutForce = 0;
@@ -234,11 +204,11 @@ void PlayMode::update(float elapsed) {
 				squishCompression -= change;
 				squishOutForce -= change * 0.75f;
 			}
-		}
+		}*/
 
 		collidedPrevFrame = false;
 
-		float oldZ = playerModel->scale.z;
+		/*float oldZ = playerModel->scale.z;
 		float scaleFactor = std::max<float>(1.0f - abs(squishCompression) / 40.0f, 0.1f);
 		float sideScaleFactor = std::min<float>(1.0f + abs(squishCompression) / 100.0f, 1.33f);
 		playerModel->scale = glm::vec3(sideScaleFactor, sideScaleFactor, scaleFactor);
@@ -246,7 +216,7 @@ void PlayMode::update(float elapsed) {
 		if (squishing())
 		{
 			player->position += (abs(squishCompression) > 0 ? (-squishCompression / abs(squishCompression)) : 1.0f) * up * playerModel->radius.z * (playerModel->scale.z - oldZ);
-		}
+		}*/
 	}
 
 	//Handle collisions:
@@ -293,8 +263,8 @@ void PlayMode::update(float elapsed) {
 		float zPush = std::max<float>(rad1.z * scale1.z + rad2.z * scale2.z - abs(zDiff), 0);
 		if (zDiff > xDiff && zDiff > yDiff)
 		{
-			this->collidedPrevFrame = true;
-			this->squishInForce += abs(playerVelocity) > 4.5f && (pos1.z >= pos2.z && playerVelocity < 0 || pos1.z < pos2.z && playerVelocity > 0) ? playerVelocity : 0.0f;
+			//this->collidedPrevFrame = true;
+			//this->squishInForce += abs(playerVelocity) > 4.5f && (pos1.z >= pos2.z && playerVelocity < 0 || pos1.z < pos2.z && playerVelocity > 0) ? playerVelocity : 0.0f;
 			playerVelocity = pos1.z >= pos2.z ? std::max<float>(0.0f, playerVelocity) : std::min<float>(0.0f, playerVelocity);
 			offset = combine(offset, glm::vec3(0.0f, 0.0f, pos1.z >= pos2.z ? zPush : -zPush));
 		}
