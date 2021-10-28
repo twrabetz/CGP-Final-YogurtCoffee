@@ -170,13 +170,13 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 up = frame[2];
 
 		//Update velocity
-		/*if (!squishing())
+		if (!squishing())
 		{
 			playerVelocity += abs(squishOutForce) > 15.0f ? squishOutForce : 0.0f;
 			squishOutForce = 0;
 			if (collidedPrevFrame && space.downs > 0)
 			{
-				squishInForce -= jumpStrength;
+				playerVelocity += jumpStrength;
 			}
 			playerVelocity -= gravity * elapsed;
 			player->position += playerVelocity * up * elapsed;
@@ -189,6 +189,7 @@ void PlayMode::update(float elapsed) {
 		}
 		else
 		{
+			/*
 			//squishInForce -= gravity * elapsed;
 			if (abs(squishInForce) > 0)
 			{
@@ -204,7 +205,8 @@ void PlayMode::update(float elapsed) {
 				squishCompression -= change;
 				squishOutForce -= change * 0.75f;
 			}
-		}*/
+			*/
+		}
 
 		collidedPrevFrame = false;
 
@@ -237,7 +239,7 @@ void PlayMode::update(float elapsed) {
 			return b;
 		if (b == 0)
 			return a;
-		if (a < 0 && b >= 0 || a >= 0 && b < 0)
+		if ( (a < 0 && b >= 0) || (a >= 0 && b < 0))
 		{
 			return a + b;
 		}
@@ -263,7 +265,7 @@ void PlayMode::update(float elapsed) {
 		float zPush = std::max<float>(rad1.z * scale1.z + rad2.z * scale2.z - abs(zDiff), 0);
 		if (zDiff > xDiff && zDiff > yDiff)
 		{
-			//this->collidedPrevFrame = true;
+			this->collidedPrevFrame = true;
 			//this->squishInForce += abs(playerVelocity) > 4.5f && (pos1.z >= pos2.z && playerVelocity < 0 || pos1.z < pos2.z && playerVelocity > 0) ? playerVelocity : 0.0f;
 			playerVelocity = pos1.z >= pos2.z ? std::max<float>(0.0f, playerVelocity) : std::min<float>(0.0f, playerVelocity);
 			offset = combine(offset, glm::vec3(0.0f, 0.0f, pos1.z >= pos2.z ? zPush : -zPush));
