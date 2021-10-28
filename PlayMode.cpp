@@ -128,7 +128,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			SDL_SetRelativeMouseMode(SDL_TRUE);
 			return true;
 		}
-	} else if (evt.type == SDL_MOUSEMOTION) {
+	} /*else if (evt.type == SDL_MOUSEMOTION) {
 		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
 			glm::vec2 motion = glm::vec2(
 				evt.motion.xrel / float(window_size.y),
@@ -143,7 +143,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				glm::angleAxis(-xMouseTravel * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
 			return true;
 		}
-	}
+	}*/
 
 	return false;
 }
@@ -165,8 +165,8 @@ void PlayMode::update(float elapsed) {
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
 
 		glm::mat4x3 frame = playerModel->make_local_to_parent();
-		glm::vec3 right = frame[0];
-		glm::vec3 forward = frame[1];
+		glm::vec3 forward = frame[0];
+		glm::vec3 right = frame[1];
 		glm::vec3 up = frame[2];
 
 		//Update velocity
@@ -180,7 +180,7 @@ void PlayMode::update(float elapsed) {
 			}
 			playerVelocity -= gravity * elapsed;
 			player->position += playerVelocity * up * elapsed;
-			player->position -= move.x * right + move.y * forward;
+			player->position -= move.x * right; /*+ move.y * forward; */
 			if (player->position.z < -30.0f)
 			{
 				player->position = glm::vec3(-2.0f, 0.0f, 4.0f);
