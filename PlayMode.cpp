@@ -65,8 +65,13 @@ PlayMode::PlayMode() : scene(*myScene) {
 				glm::angleAxis(0.0f * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
 		}
 		if (transform.name.find("Platform") != std::string::npos)
+		{
 			platforms.push_back(&transform);
+			collisionManager.registerAgent(&transform, true);
+		}
 	}
+
+	playerAgent = collisionManager.registerAgent(player, playerModel, false);
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -170,127 +175,21 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 up = frame[2];
 
 		//Update velocity
-		if (!squishing())
+		if (playerAgent->collidedPrevFrame && space.downs > 0)
 		{
-			playerVelocity += abs(squishOutForce) > 15.0f ? squishOutForce : 0.0f;
-			squishOutForce = 0;
-			if (collidedPrevFrame && space.downs > 0)
-			{
-				playerVelocity += jumpStrength;
-			}
-			playerVelocity -= gravity * elapsed;
-			player->position += playerVelocity * up * elapsed;
-			player->position -= move.x * right; /*+ move.y * forward; */
-			if (player->position.z < -30.0f)
-			{
-				player->position = glm::vec3(-2.0f, 0.0f, 4.0f);
-				playerVelocity = 0.0f;
-			}
+			playerAgent->velocity += up * jumpStrength;
 		}
-		else
+		playerAgent->velocity.y = -move.x * 50.0f;
+		playerAgent->velocity -= up * gravity * elapsed;
+		player->position += playerAgent->velocity * elapsed;
+		if (player->position.z < -30.0f)
 		{
-			/*
-			//squishInForce -= gravity * elapsed;
-			if (abs(squishInForce) > 0)
-			{
-				float sign = squishInForce / abs(squishInForce);
-				float change = sign * std::min<float>(abs(squishInForce), squishTransferRate * elapsed);
-				squishCompression += change;
-				squishInForce -= change;
-			}
-			else if (abs(squishCompression) > 0)
-			{
-				float sign = squishCompression / abs(squishCompression);
-				float change = sign * std::min<float>(abs(squishCompression), squishTransferRate * elapsed);
-				squishCompression -= change;
-				squishOutForce -= change * 0.75f;
-			}
-			*/
-		}
-
-		collidedPrevFrame = false;
-
-		/*float oldZ = playerModel->scale.z;
-		float scaleFactor = std::max<float>(1.0f - abs(squishCompression) / 40.0f, 0.1f);
-		float sideScaleFactor = std::min<float>(1.0f + abs(squishCompression) / 100.0f, 1.33f);
-		playerModel->scale = glm::vec3(sideScaleFactor, sideScaleFactor, scaleFactor);
-
-		if (squishing())
-		{
-			player->position += (abs(squishCompression) > 0 ? (-squishCompression / abs(squishCompression)) : 1.0f) * up * playerModel->radius.z * (playerModel->scale.z - oldZ);
-		}*/
-	}
-
-	//Handle collisions:
-	auto checkCollision = [](glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2) -> bool
-	{
-		float xDiff = abs(pos1.x - pos2.x);
-		float yDiff = abs(pos1.y - pos2.y);
-		float zDiff = abs(pos1.z - pos2.z);
-		bool result = xDiff <= rad1.x * scale1.x + rad2.x * scale2.x && yDiff <= rad1.y * scale1.y + rad2.y * scale2.y && zDiff <= rad1.z * scale1.z + rad2.z * scale2.z;
-		//std::cout << "CheckCollision, Pos1: " << toString(pos1) << " Pos2: " << toString(pos2) << " Rad1: " << toString(rad1) << " Rad2: " 
-		//	<< toString(rad2) << ": " << result << std::endl;
-		return result;
-	};
-
-	auto combineFloat = [](float a, float b)
-	{
-		if (a == 0)
-			return b;
-		if (b == 0)
-			return a;
-		if ( (a < 0 && b >= 0) || (a >= 0 && b < 0))
-		{
-			return a + b;
-		}
-		float res = (a / abs(a)) * std::max<float>(abs(a), abs(b));
-		//std::cout << "CombineFloat combined A: " << a << " B: " << b << " to " << res << std::endl;
-		return res;
-	};
-
-	auto combine = [combineFloat](glm::vec3 offset1, glm::vec3 offset2)
-	{
-		return glm::vec3(combineFloat(offset1.x, offset2.x), combineFloat(offset1.y, offset2.y), combineFloat(offset1.z, offset2.z));
-	};
-
-	//Make everything go ahead n bump everything else
-	auto processCollision = [this, combine](glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2,
-		glm::vec3& offset, float& playerVelocity)
-	{
-		float xDiff = abs(pos1.x - pos2.x);
-		float yDiff = abs(pos1.y - pos2.y);
-		float zDiff = abs(pos1.z - pos2.z);
-		float xPush = std::max<float>(rad1.x * scale1.x + rad2.x * scale2.x - abs(xDiff), 0);
-		float yPush = std::max<float>(rad1.y * scale1.y + rad2.y * scale2.y - abs(yDiff), 0);
-		float zPush = std::max<float>(rad1.z * scale1.z + rad2.z * scale2.z - abs(zDiff), 0);
-		if (zDiff > xDiff && zDiff > yDiff)
-		{
-			this->collidedPrevFrame = true;
-			//this->squishInForce += abs(playerVelocity) > 4.5f && (pos1.z >= pos2.z && playerVelocity < 0 || pos1.z < pos2.z && playerVelocity > 0) ? playerVelocity : 0.0f;
-			playerVelocity = pos1.z >= pos2.z ? std::max<float>(0.0f, playerVelocity) : std::min<float>(0.0f, playerVelocity);
-			offset = combine(offset, glm::vec3(0.0f, 0.0f, pos1.z >= pos2.z ? zPush : -zPush));
-		}
-		else if (xDiff > yDiff)
-			offset = combine(offset, glm::vec3(pos1.x >= pos2.x ? xPush : -xPush, 0.0f, 0.0f));
-		else
-			offset = combine(offset, glm::vec3(0.0f, pos1.y >= pos2.y ? yPush : -yPush, 0.0f));
-	};
-
-	glm::vec3 playerOffset = glm::vec3(0.0f);
-
-	if (!squishing())
-	{
-		for (Scene::Transform* platform : platforms)
-		{
-			if (checkCollision(player->position, platform->position, playerModel->radius, platform->radius, playerModel->scale, platform->scale))
-				processCollision(player->position, platform->position, playerModel->radius, platform->radius, playerModel->scale, platform->scale,
-					playerOffset, playerVelocity);
+			player->position = glm::vec3(-2.0f, 0.0f, 4.0f);
+			playerAgent->velocity = glm::vec3(0.0f);
 		}
 	}
 
-	//std::cout << "Player Offset X: " << playerOffset.x << " Y: " << playerOffset.y << " Z: " << playerOffset.z << std::endl;
-
-	player->position += playerOffset;
+	collisionManager.update();
 
 	//reset button press counters:
 	left.downs = 0;

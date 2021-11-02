@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <deque>
+#include "CollisionManager.hpp"
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -32,23 +33,16 @@ struct PlayMode : Mode {
 	Scene::Transform* cameraAnchor = nullptr;
 	std::vector<Scene::Transform*> platforms;
 
+	CollisionAgent* playerAgent;
+
+	CollisionManager collisionManager = CollisionManager();
+
 	float xMouseTravel = 0.0f;
 	float yMouseTravel = 0.0f;
 
 	//Using velocity only in the up-down axis
-	float playerVelocity = 0.0f;
 	float gravity = 200.0f;
-	float jumpStrength = 75.0f;
-
-	//Player "Squish" mechanism:
-	float squishInForce = 0.0f;
-	float squishOutForce = 0.0f;
-	float squishCompression = 0.0f;
-	float squishTransferRate = 350.0f;
-
-	bool collidedPrevFrame = false;
-
-	bool squishing() { return abs(squishCompression + squishInForce) >= 0.1f; }
+	float jumpStrength = 50.0f;
 	
 	//camera:
 	Scene::Camera *camera = nullptr;
