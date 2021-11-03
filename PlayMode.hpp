@@ -24,7 +24,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, space;
+	} left, right, down, up, space, shift;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
@@ -36,6 +36,11 @@ struct PlayMode : Mode {
 
 	CollisionAgent* playerAgent;
 	DrunkPerson* heldDrunkPerson = nullptr;
+
+	float timeFactor = 1.0f;
+	float maxTimeFactor = 1.0f;
+	float minTimeFactor = 0.125f;
+	float timeFactorChangeRate = 2.0f;
 
 	std::vector<DrunkPerson*> drunkPeople;
 

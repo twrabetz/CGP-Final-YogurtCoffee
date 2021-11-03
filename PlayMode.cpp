@@ -89,25 +89,29 @@ PlayMode::PlayMode() : scene(*myScene) {
 PlayMode::~PlayMode() {
 }
 
-bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size) {
 
 	if (evt.type == SDL_KEYDOWN) {
 		if (evt.key.keysym.sym == SDLK_ESCAPE) {
 			SDL_SetRelativeMouseMode(SDL_FALSE);
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_a) {
+		}
+		else if (evt.key.keysym.sym == SDLK_a) {
 			left.downs += 1;
 			left.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
+		}
+		else if (evt.key.keysym.sym == SDLK_d) {
 			right.downs += 1;
 			right.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
+		}
+		else if (evt.key.keysym.sym == SDLK_w) {
 			up.downs += 1;
 			up.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
+		}
+		else if (evt.key.keysym.sym == SDLK_s) {
 			down.downs += 1;
 			down.pressed = true;
 			return true;
@@ -117,17 +121,26 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			space.pressed = true;
 			return true;
 		}
-	} else if (evt.type == SDL_KEYUP) {
+		else if (evt.key.keysym.sym == SDLK_LSHIFT || evt.key.keysym.sym == SDLK_RSHIFT)
+		{
+			shift.downs += 1;
+			shift.pressed = true;
+		}
+	}
+	else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_a) {
 			left.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
+		}
+		else if (evt.key.keysym.sym == SDLK_d) {
 			right.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
+		}
+		else if (evt.key.keysym.sym == SDLK_w) {
 			up.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
+		}
+		else if (evt.key.keysym.sym == SDLK_s) {
 			down.pressed = false;
 			return true;
 		}
@@ -135,12 +148,22 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			space.pressed = false;
 			return true;
 		}
-	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
+		else if (evt.key.keysym.sym == SDLK_LSHIFT || evt.key.keysym.sym == SDLK_RSHIFT)
+		{
+			shift.pressed = false;
+			return true;
+		}
+	}
+	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
 			SDL_SetRelativeMouseMode(SDL_TRUE);
 			return true;
 		}
-	} /*else if (evt.type == SDL_MOUSEMOTION) {
+		shift.pressed = true;
+	}
+	else if (evt.type == SDL_MOUSEBUTTONUP) {
+		shift.pressed = false;
+    }	/*else if (evt.type == SDL_MOUSEMOTION) {
 		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
 			glm::vec2 motion = glm::vec2(
 				evt.motion.xrel / float(window_size.y),
@@ -205,6 +228,16 @@ void PlayMode::update(float elapsed) {
 		playerAgent->collidedPrevFrame = false;
 	}
 
+	//Time control
+	if (shift.pressed)
+	{
+		timeFactor = std::max<float>(timeFactor - timeFactorChangeRate * elapsed, minTimeFactor);
+	}
+	else
+	{
+		timeFactor = std::min<float>(timeFactor + timeFactorChangeRate * elapsed, maxTimeFactor);
+	}
+
 	//Pick up drunk person if colliding with one
 	if (heldDrunkPerson == nullptr)
 	{
@@ -222,7 +255,7 @@ void PlayMode::update(float elapsed) {
 	//Update drunk people
 	for (DrunkPerson* drunkPerson : drunkPeople)
 	{
-		drunkPerson->update(elapsed, gravity);
+		drunkPerson->update(elapsed * timeFactor, gravity);
 	}
 
 	collisionManager.update();
@@ -233,6 +266,7 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 	space.downs = 0;
+	shift.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
