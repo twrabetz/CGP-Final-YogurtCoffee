@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glm/glm.hpp>
 #include "Scene.hpp"
 
@@ -11,6 +13,8 @@ struct CollisionAgent
 	glm::vec3 offset = glm::vec3(0.0f);
 
 	bool collidedPrevFrame = false;
+
+	bool enabled = true;
 
 	CollisionAgent(Scene::Transform* newTransform)
 	{
@@ -47,6 +51,8 @@ struct CollisionManager
 
 	CollisionAgent* registerAgent(Scene::Transform* transform, bool wall);
 	CollisionAgent* registerAgent(Scene::Transform* positionTransform, Scene::Transform* collisionTransform, bool wall);
+
+	bool checkCollision(CollisionAgent* A, CollisionAgent* B);
 
 	void unregisterAgent(CollisionAgent* agent, bool wall);
 

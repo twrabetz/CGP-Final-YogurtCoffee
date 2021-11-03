@@ -71,6 +71,13 @@ PlayMode::PlayMode() : scene(*myScene) {
 		}
 	}
 
+	for (Scene::Transform& transform : scene.transforms) {
+		if (transform.name.find("DrunkPerson") != std::string::npos)
+		{
+			drunkPeople.push_back(new DrunkPerson(collisionManager.registerAgent(&transform, false), player));
+		}
+	}
+
 	playerAgent = collisionManager.registerAgent(player, playerModel, false);
 
 	//get pointer to camera for convenience:
@@ -172,20 +179,47 @@ void PlayMode::update(float elapsed) {
 		glm::mat4x3 frame = playerModel->make_local_to_parent();
 		glm::vec3 forward = frame[0];
 		glm::vec3 right = frame[1];
-		glm::vec3 up = frame[2];
+		glm::vec3 upVector = frame[2];
 
 		//Update velocity
-		if (playerAgent->collidedPrevFrame && space.downs > 0)
+		if (playerAgent->collidedPrevFrame && up.downs > 0)
 		{
-			playerAgent->velocity += up * jumpStrength;
+			playerAgent->velocity += upVector * jumpStrength;
 		}
-		playerAgent->velocity.y = -move.x * 50.0f;
-		playerAgent->velocity -= up * gravity * elapsed;
+		playerAgent->velocity.y = -move.x * 75.0f;
+		playerAgent->velocity -= upVector * gravity * elapsed;
 		player->position += playerAgent->velocity * elapsed;
 		if (player->position.z < -30.0f)
 		{
-			player->position = glm::vec3(-2.0f, 0.0f, 4.0f);
+			player->position = glm::vec3(0.0f, 0.0f, 4.0f);
 			playerAgent->velocity = glm::vec3(0.0f);
+			//TODO: Reload the scene?
+		}
+		//Throw drunk person
+		if (heldDrunkPerson && space.downs > 0)
+		{
+			heldDrunkPerson->launch(glm::vec3(playerAgent->velocity.x * 1.5f, playerAgent->velocity.y * 1.5f, playerAgent->velocity.z * 0.1f) + upVector * 35.0f);
+			heldDrunkPerson = nullptr;
+		}
+	}
+
+	//Update drunk people
+	for (DrunkPerson* drunkPerson : drunkPeople)
+	{
+		drunkPerson->update(elapsed, gravity);
+	}
+
+	//Pick up drunk person if colliding with one
+	if (heldDrunkPerson == nullptr)
+	{
+		for (DrunkPerson* drunkPerson : drunkPeople)
+		{
+			if (collisionManager.checkCollision(playerAgent, drunkPerson->agent) && drunkPerson->agent->collidedPrevFrame)
+			{
+				drunkPerson->pickUp();
+				heldDrunkPerson = drunkPerson;
+				break;
+			}
 		}
 	}
 

@@ -11,6 +11,12 @@ bool CollisionManager::checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 
 	return result;
 }
 
+bool CollisionManager::checkCollision(CollisionAgent* A, CollisionAgent* B)
+{
+	return checkCollision(A->positionTransform->position, B->positionTransform->position, A->scaleTransform->radius, B->scaleTransform->radius,
+		A->scaleTransform->scale, B->scaleTransform->scale);
+}
+
 float CollisionManager::combineFloat(float a, float b)
 {
 	if (a == 0)
@@ -91,8 +97,9 @@ void CollisionManager::update()
 	{
 		for (CollisionAgent* agent2 : agents)
 		{
-			if (agent != agent2 && checkCollision(agent->positionTransform->position, agent2->positionTransform->position, 
-				agent->scaleTransform->radius, agent2->scaleTransform->radius, agent->scaleTransform->scale, agent2->scaleTransform->scale))
+			if (agent != agent2 && agent->enabled && agent2->enabled && 
+				checkCollision(agent->positionTransform->position, agent2->positionTransform->position, agent->scaleTransform->radius, 
+					agent2->scaleTransform->radius, agent->scaleTransform->scale, agent2->scaleTransform->scale))
 				processCollision(agent, agent->positionTransform->position, agent2->positionTransform->position, agent->scaleTransform->radius, 
 					agent2->scaleTransform->radius, agent->scaleTransform->scale, agent2->scaleTransform->scale, false);
 		}
@@ -108,7 +115,8 @@ void CollisionManager::update()
 	{
 		for (CollisionAgent* wall : walls)
 		{
-			if (agent != wall && checkCollision(agent->positionTransform->position, wall->positionTransform->position,
+			if (agent != wall && agent->enabled && wall->enabled && 
+				checkCollision(agent->positionTransform->position, wall->positionTransform->position,
 				agent->scaleTransform->radius, wall->scaleTransform->radius, agent->scaleTransform->scale, wall->scaleTransform->scale))
 				processCollision(agent, agent->positionTransform->position, wall->positionTransform->position, agent->scaleTransform->radius,
 					wall->scaleTransform->radius, agent->scaleTransform->scale, wall->scaleTransform->scale, true);

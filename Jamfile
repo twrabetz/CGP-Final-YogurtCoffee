@@ -123,6 +123,7 @@ GAME_NAMES =
 
 COMMON_NAMES =
 	data_path
+	DrunkPerson
 	PathFont
 	PathFont-font
 	DrawLines

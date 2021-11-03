@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include "CollisionManager.hpp"
+#include "DrunkPerson.hpp"
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -34,6 +35,9 @@ struct PlayMode : Mode {
 	std::vector<Scene::Transform*> platforms;
 
 	CollisionAgent* playerAgent;
+	DrunkPerson* heldDrunkPerson = nullptr;
+
+	std::vector<DrunkPerson*> drunkPeople;
 
 	CollisionManager collisionManager = CollisionManager();
 
