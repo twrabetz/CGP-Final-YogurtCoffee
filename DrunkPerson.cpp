@@ -1,4 +1,5 @@
 #include "DrunkPerson.hpp"
+#include <iostream>
 
 DrunkPerson::DrunkPerson(CollisionAgent* newAgent, Scene::Transform* newTarget)
 {
@@ -20,6 +21,10 @@ void DrunkPerson::update(float elapsed, float gravity)
 		glm::vec3 diff = target->position + pickupOffset - agent->positionTransform->position;
 		agent->positionTransform->position += glm::normalize(diff) * std::min<float>(glm::length(diff), lerpSpeed);
 	}
+
+	agent->velocity *= std::pow(0.15f, elapsed);
+
+	agent->collidedPrevFrame = false;
 }
 
 void DrunkPerson::pickUp()

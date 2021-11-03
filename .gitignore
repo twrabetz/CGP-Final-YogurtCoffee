@@ -10,3 +10,14 @@ dist/game.exe
 scenes/show-meshes*
 scenes/show-scene*
 *.blend[0-9]
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db-shm
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db-wal
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.opendb
+.vs/slnx.sqlite
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
+.vs/slnx.sqlite
+.vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
+.vs/slnx.sqlite
+*.sqlite
+*.db

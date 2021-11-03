@@ -198,15 +198,11 @@ void PlayMode::update(float elapsed) {
 		//Throw drunk person
 		if (heldDrunkPerson && space.downs > 0)
 		{
-			heldDrunkPerson->launch(glm::vec3(playerAgent->velocity.x * 1.5f, playerAgent->velocity.y * 1.5f, playerAgent->velocity.z * 0.1f) + upVector * 35.0f);
+			heldDrunkPerson->launch(glm::vec3(playerAgent->velocity.x * 3.0f, playerAgent->velocity.y * 3.0f, playerAgent->velocity.z * 0.33f) + upVector * 45.0f);
 			heldDrunkPerson = nullptr;
 		}
-	}
 
-	//Update drunk people
-	for (DrunkPerson* drunkPerson : drunkPeople)
-	{
-		drunkPerson->update(elapsed, gravity);
+		playerAgent->collidedPrevFrame = false;
 	}
 
 	//Pick up drunk person if colliding with one
@@ -221,6 +217,12 @@ void PlayMode::update(float elapsed) {
 				break;
 			}
 		}
+	}
+
+	//Update drunk people
+	for (DrunkPerson* drunkPerson : drunkPeople)
+	{
+		drunkPerson->update(elapsed, gravity);
 	}
 
 	collisionManager.update();
