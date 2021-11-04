@@ -9,6 +9,7 @@ dist/game
 dist/game.exe
 scenes/show-meshes*
 scenes/show-scene*
+scenes/.DS_Store
 *.blend[0-9]
 .vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
 .vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db-shm
@@ -19,5 +20,6 @@ scenes/show-scene*
 .vs/slnx.sqlite
 .vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
 .vs/slnx.sqlite
+.DS_Store
 *.sqlite
 *.db
