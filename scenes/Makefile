@@ -17,12 +17,12 @@ EXPORT_SCENE=export-scene.py
 DIST=../dist
 
 all : \
-	$(DIST)/spiderbot.pnct \
-	$(DIST)/spiderbot.scene \
+	$(DIST)/livingroom.pnct \
+	$(DIST)/livingroom.scene \
 
 
-$(DIST)/spiderbot.scene : spiderbot.blend $(EXPORT_SCENE)
+$(DIST)/livingroom.scene : livingroom.blend $(EXPORT_SCENE)
 	$(BLENDER) --background --python $(EXPORT_SCENE) -- '$<':Collection '$@'
 
-$(DIST)/spiderbot.pnct : spiderbot.blend $(EXPORT_MESHES)
+$(DIST)/livingroom.pnct : livingroom.blend $(EXPORT_MESHES)
 	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<':Collection '$@'
