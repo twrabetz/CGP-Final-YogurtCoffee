@@ -10,6 +10,7 @@ dist/game.exe
 scenes/show-meshes*
 scenes/show-scene*
 scenes/.DS_Store
+scenes/Makefile
 *.blend[0-9]
 .vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db
 .vs/CGP-Final-YogurtCoffee/v16/Browse.VC.db-shm
