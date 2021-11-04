@@ -4,7 +4,7 @@
 struct DrunkPerson
 {
 
-	glm::vec3 pickupOffset = glm::vec3(0, 0, 2.0f);
+	glm::vec3 pickupOffset = glm::vec3(0, 0, 4.0f);
 	float lerpSpeed = 5.0f;
 
 	CollisionAgent* agent = nullptr;

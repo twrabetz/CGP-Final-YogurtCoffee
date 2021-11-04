@@ -200,8 +200,8 @@ void PlayMode::update(float elapsed) {
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
 
 		glm::mat4x3 frame = playerModel->make_local_to_parent();
-		glm::vec3 forward = frame[0];
-		glm::vec3 right = frame[1];
+		//glm::vec3 forward = frame[0];
+		//glm::vec3 right = frame[1];
 		glm::vec3 upVector = frame[2];
 
 		//Update velocity
