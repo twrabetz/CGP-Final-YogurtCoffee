@@ -1,20 +1,27 @@
 #include "CollisionManager.hpp"
 
 //Handle collisions:
-bool CollisionManager::checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2)
+bool CollisionManager::checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2, 
+	CollisionAxis& outAxis /*=0*/)
 {
 	float xDiff = abs(pos1.x - pos2.x);
 	float yDiff = abs(pos1.y - pos2.y);
 	float zDiff = abs(pos1.z - pos2.z);
+	if (zDiff > xDiff && zDiff > yDiff)
+		outAxis = CollisionAxis::Z;
+	else if (yDiff > xDiff)
+		outAxis = CollisionAxis::Y;
+	else
+		outAxis = CollisionAxis::X;
 	bool result = xDiff <= rad1.x * scale1.x + rad2.x * scale2.x && yDiff <= rad1.y * scale1.y + rad2.y * scale2.y 
 		&& zDiff <= rad1.z * scale1.z + rad2.z * scale2.z;
 	return result;
 }
 
-bool CollisionManager::checkCollision(CollisionAgent* A, CollisionAgent* B)
+bool CollisionManager::checkCollision(CollisionAgent* A, CollisionAgent* B, CollisionAxis& outAxis /*=0*/)
 {
 	return checkCollision(A->positionTransform->position, B->positionTransform->position, A->scaleTransform->radius, B->scaleTransform->radius,
-		A->scaleTransform->scale, B->scaleTransform->scale);
+		A->scaleTransform->scale, B->scaleTransform->scale, outAxis);
 }
 
 float CollisionManager::combineFloat(float a, float b)

@@ -69,7 +69,14 @@ PlayMode::PlayMode() : scene(*myScene) {
 			platforms.push_back(&transform);
 			collisionManager.registerAgent(&transform, true);
 		}
+		if (transform.name.find("TrashBinCollision") != std::string::npos)
+		{
+			trashBins.push_back(collisionManager.registerAgent(&transform, true));
+		}
+		std::cout << transform.name << std::endl;
 	}
+
+	std::cout << trashBins.size() << std::endl;
 
 	for (Scene::Transform& transform : scene.transforms) {
 		if (transform.name.find("DrunkPerson") != std::string::npos)
@@ -247,6 +254,20 @@ void PlayMode::update(float elapsed) {
 			{
 				drunkPerson->pickUp();
 				heldDrunkPerson = drunkPerson;
+				break;
+			}
+		}
+	}
+
+	//Check drunk people collision with trashcans
+	for (DrunkPerson* drunkPerson : drunkPeople)
+	{
+		for (CollisionAgent* trashCan : trashBins)
+		{
+			CollisionAxis outAxis = CollisionAxis::X;
+			if (collisionManager.checkCollision(drunkPerson->agent, trashCan, outAxis) && outAxis == CollisionAxis::Z)
+			{
+				collisionManager.unregisterAgent(drunkPerson->agent, false);
 				break;
 			}
 		}

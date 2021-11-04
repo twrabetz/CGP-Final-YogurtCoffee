@@ -43,6 +43,7 @@ struct PlayMode : Mode {
 	float timeFactorChangeRate = 2.0f;
 
 	std::vector<DrunkPerson*> drunkPeople;
+	std::vector<CollisionAgent*> trashBins;
 
 	CollisionManager collisionManager = CollisionManager();
 

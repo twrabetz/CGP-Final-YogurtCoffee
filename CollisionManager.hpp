@@ -3,6 +3,13 @@
 #include <glm/glm.hpp>
 #include "Scene.hpp"
 
+enum CollisionAxis
+{
+	X,
+	Y,
+	Z
+};
+
 struct CollisionAgent
 {
 	Scene::Transform* positionTransform = nullptr;
@@ -35,7 +42,13 @@ struct CollisionManager
 	~CollisionManager();
 
 	//Handle collisions:
-	bool checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2);
+	inline bool checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2)
+	{
+		CollisionAxis dummy = CollisionAxis::X;
+		return checkCollision(pos1, pos2, rad1, rad2, scale1, scale2, dummy);
+	}
+	bool checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 rad1, glm::vec3 rad2, glm::vec3 scale1, glm::vec3 scale2, 
+		CollisionAxis& outAxis);
 
 	float combineFloat(float a, float b);
 
@@ -52,7 +65,12 @@ struct CollisionManager
 	CollisionAgent* registerAgent(Scene::Transform* transform, bool wall);
 	CollisionAgent* registerAgent(Scene::Transform* positionTransform, Scene::Transform* collisionTransform, bool wall);
 
-	bool checkCollision(CollisionAgent* A, CollisionAgent* B);
+	inline bool checkCollision(CollisionAgent* A, CollisionAgent* B) 
+	{
+		CollisionAxis dummy = CollisionAxis::X;
+		return checkCollision(A, B, dummy); 
+	}
+	bool checkCollision(CollisionAgent* A, CollisionAgent* B, CollisionAxis& outAxis);
 
 	void unregisterAgent(CollisionAgent* agent, bool wall);
 
