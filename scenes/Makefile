@@ -17,12 +17,12 @@ EXPORT_SCENE=export-scene.py
 DIST=../dist
 
 all : \
-	$(DIST)/livingroom.pnct \
-	$(DIST)/livingroom.scene \
+	$(DIST)/castle.pnct \
+	$(DIST)/castle.scene \
 
 
-$(DIST)/livingroom.scene : livingroom.blend $(EXPORT_SCENE)
+$(DIST)/castle.scene : castle.blend $(EXPORT_SCENE)
 	$(BLENDER) --background --python $(EXPORT_SCENE) -- '$<':Collection '$@'
 
-$(DIST)/livingroom.pnct : livingroom.blend $(EXPORT_MESHES)
+$(DIST)/castle.pnct : castle.blend $(EXPORT_MESHES)
 	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<':Collection '$@'
