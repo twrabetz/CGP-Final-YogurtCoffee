@@ -82,7 +82,7 @@ CollisionAgent* CollisionManager::registerAgent(Scene::Transform* transform, Sce
 void CollisionManager::unregisterAgent(CollisionAgent* agent, bool wall)
 {
 	bool erased = false;
-	for (int i = 0; i < (wall ? walls : agents).size(); i++)
+	for (size_t i = 0; i < (wall ? walls : agents).size(); i++)
 	{
 		if (agent == (wall ? walls : agents)[i])
 		{
@@ -139,15 +139,15 @@ void CollisionManager::update()
 
 CollisionManager::~CollisionManager()
 {
-	for (int i = 0; i < agents.size(); i++)
+	for (size_t i = 0; i < agents.size(); i++)
 	{
 		free(agents[i]);
 	}
-	for (int i = 0; i < walls.size(); i++)
+	for (size_t i = 0; i < walls.size(); i++)
 	{
 		free(walls[i]);
 	}
-	for (int i = 0; i < removedAgents.size(); i++)
+	for (size_t i = 0; i < removedAgents.size(); i++)
 	{
 		free(removedAgents[i]);
 	}
