@@ -37,15 +37,20 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("SquidgeBall.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
 		Mesh const &mesh = meshes->lookup(mesh_name);
 
-		scene.drawables.emplace_back(transform);
-		Scene::Drawable &drawable = scene.drawables.back();
+		//Transforms with names containing "Collider" will not be drawn
+		if (transform->name.find("Collider") == std::string::npos)
+		{
 
-		drawable.pipeline = lit_color_texture_program_pipeline;
+			scene.drawables.emplace_back(transform);
+			Scene::Drawable& drawable = scene.drawables.back();
 
-		drawable.pipeline.vao = meshes_for_lit_color_texture_program;
-		drawable.pipeline.type = mesh.type;
-		drawable.pipeline.start = mesh.start;
-		drawable.pipeline.count = mesh.count;
+			drawable.pipeline = lit_color_texture_program_pipeline;
+
+			drawable.pipeline.vao = meshes_for_lit_color_texture_program;
+			drawable.pipeline.type = mesh.type;
+			drawable.pipeline.start = mesh.start;
+			drawable.pipeline.count = mesh.count;
+		}
 
 		transform->radius = glm::vec3((mesh.max.x - mesh.min.x) / 2, (mesh.max.y - mesh.min.y) / 2, (mesh.max.z - mesh.min.z) / 2);
 	});
@@ -63,6 +68,10 @@ PlayMode::PlayMode() : scene(*myScene) {
 			playerModel = &transform;
 			playerModel->rotation = glm::normalize(
 				glm::angleAxis(0.0f * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
+		}
+		if (transform.name == "TestCollider")
+		{
+			collisionManager.registerAgent(&transform, true);
 		}
 		if (transform.name.find("Platform") != std::string::npos)
 		{
