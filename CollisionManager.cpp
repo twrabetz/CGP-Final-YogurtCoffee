@@ -20,7 +20,7 @@ bool CollisionManager::checkCollision(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 
 
 bool CollisionManager::checkCollision(CollisionAgent* A, CollisionAgent* B, CollisionAxis& outAxis /*=0*/)
 {
-	return checkCollision(A->positionTransform->position, B->positionTransform->position, A->scaleTransform->radius, B->scaleTransform->radius,
+	return checkCollision(A->GetPosition(), B->GetPosition(), A->scaleTransform->radius, B->scaleTransform->radius,
 		A->scaleTransform->scale, B->scaleTransform->scale, outAxis);
 }
 
@@ -105,9 +105,9 @@ void CollisionManager::update()
 		for (CollisionAgent* agent2 : agents)
 		{
 			if (agent != agent2 && agent->enabled && agent2->enabled && 
-				checkCollision(agent->positionTransform->position, agent2->positionTransform->position, agent->scaleTransform->radius, 
+				checkCollision(agent->GetPosition(), agent2->GetPosition(), agent->scaleTransform->radius, 
 					agent2->scaleTransform->radius, agent->scaleTransform->scale, agent2->scaleTransform->scale))
-				processCollision(agent, agent->positionTransform->position, agent2->positionTransform->position, agent->scaleTransform->radius, 
+				processCollision(agent, agent->GetPosition(), agent2->GetPosition(), agent->scaleTransform->radius, 
 					agent2->scaleTransform->radius, agent->scaleTransform->scale, agent2->scaleTransform->scale, false);
 		}
 	}
@@ -123,9 +123,9 @@ void CollisionManager::update()
 		for (CollisionAgent* wall : walls)
 		{
 			if (agent != wall && agent->enabled && wall->enabled && 
-				checkCollision(agent->positionTransform->position, wall->positionTransform->position,
+				checkCollision(agent->GetPosition(), wall->GetPosition(),
 				agent->scaleTransform->radius, wall->scaleTransform->radius, agent->scaleTransform->scale, wall->scaleTransform->scale))
-				processCollision(agent, agent->positionTransform->position, wall->positionTransform->position, agent->scaleTransform->radius,
+				processCollision(agent, agent->GetPosition(), wall->GetPosition(), agent->scaleTransform->radius,
 					wall->scaleTransform->radius, agent->scaleTransform->scale, wall->scaleTransform->scale, true);
 		}
 	}

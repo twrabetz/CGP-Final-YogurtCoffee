@@ -34,6 +34,11 @@ struct CollisionAgent
 		positionTransform = newPositionTransform;
 		scaleTransform = newScaleTransform;
 	}
+
+	glm::vec3 GetPosition()
+	{
+		return positionTransform->make_local_to_world() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
 };
 
 struct CollisionManager

@@ -69,18 +69,10 @@ PlayMode::PlayMode() : scene(*myScene) {
 			playerModel->rotation = glm::normalize(
 				glm::angleAxis(0.0f * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
 		}
-		if (transform.name == "TestCollider")
-		{
-			collisionManager.registerAgent(&transform, true);
-		}
 		if (transform.name.find("Platform") != std::string::npos)
 		{
 			platforms.push_back(&transform);
 			collisionManager.registerAgent(&transform, true);
-		}
-		if (transform.name.find("TrashBinCollision") != std::string::npos)
-		{
-			trashBins.push_back(collisionManager.registerAgent(&transform, true));
 		}
 		std::cout << transform.name << std::endl;
 	}
@@ -197,6 +189,11 @@ bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size)
 	}*/
 
 	return false;
+}
+
+std::string to_string(glm::vec3 input)
+{
+	return "(" + std::to_string(input.x) + ", " + std::to_string(input.y) + ", " + std::to_string(input.z) + ")";
 }
 
 void PlayMode::update(float elapsed) {
