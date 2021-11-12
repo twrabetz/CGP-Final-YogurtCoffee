@@ -50,6 +50,8 @@ struct PlayMode : Mode {
 	float xMouseTravel = 0.0f;
 	float yMouseTravel = 0.0f;
 
+	glm::vec2 mouse_pos; // mouse position in NDC
+
 	//Using velocity only in the up-down axis
 	float gravity = 200.0f;
 	float jumpStrength = 50.0f;
@@ -57,4 +59,5 @@ struct PlayMode : Mode {
 	//camera:
 	Scene::Camera *camera = nullptr;
 
+	glm::vec3 get_mouse_position() const;
 };

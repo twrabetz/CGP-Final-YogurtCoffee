@@ -9,6 +9,7 @@
 #include "data_path.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <random>
 
@@ -163,30 +164,16 @@ bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size)
 		}
 	}
 	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-			return true;
-		}
 		shift.pressed = true;
 	}
 	else if (evt.type == SDL_MOUSEBUTTONUP) {
 		shift.pressed = false;
-    }	/*else if (evt.type == SDL_MOUSEMOTION) {
-		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
-			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
-				-evt.motion.yrel / float(window_size.y)
-			);
-			xMouseTravel += motion.x;
-			yMouseTravel += motion.y;
-			cameraAnchor->rotation = glm::normalize(
-				glm::angleAxis(-xMouseTravel * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f))
-				* glm::angleAxis(-yMouseTravel * 1.0f, glm::vec3(1.0f, 0.0f, 0.0f)));
-			playerModel->rotation = glm::normalize(
-				glm::angleAxis(-xMouseTravel * 1.0f, glm::vec3(0.0f, 0.0f, 1.0f)));
-			return true;
-		}
-	}*/
+    }
+	else if (evt.type == SDL_MOUSEMOTION) {
+		// convert to NDC coordinates
+		mouse_pos.x = 2 * float(evt.motion.x) / window_size.x - 1.f;
+		mouse_pos.y = 1.f - 2 * float(evt.motion.y) / window_size.y;
+	}
 
 	return false;
 }
@@ -340,4 +327,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 	}
+}
+
+glm::vec3 PlayMode::get_mouse_position() const {
+	glm::mat4 inv_view_proj = camera->transform->make_local_to_world() * glm::inverse(camera->make_projection());
+	glm::vec3 world_mouse_pos = inv_view_proj * glm::vec4(mouse_pos.x, mouse_pos.y, 0.f, 1.f);
+	world_mouse_pos.x = 0.f; // This scene is built in that way!
+	return world_mouse_pos;
 }
