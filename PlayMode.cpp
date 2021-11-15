@@ -60,6 +60,7 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 PlayMode::PlayMode() : scene(*myScene) {
 
 	for (Scene::Transform& transform : scene.transforms) {
+		std::cout << transform.name << std::endl;
 		if (transform.name == "Player")
 			player = &transform;
 		if (transform.name == "CameraAnchor")
@@ -72,6 +73,7 @@ PlayMode::PlayMode() : scene(*myScene) {
 		}
 		if (transform.name.find("Platform") != std::string::npos)
 		{
+			std::cout << "Adding platform" << std::endl;
 			platforms.push_back(&transform);
 			collisionManager.registerAgent(&transform, true);
 		}
@@ -79,10 +81,9 @@ PlayMode::PlayMode() : scene(*myScene) {
 		{
 			aimingCone = &transform;
 		}
-		std::cout << transform.name << std::endl;
 	}
 
-	std::cout << trashBins.size() << std::endl;
+	std::cout << platforms.size() << std::endl;
 
 	for (Scene::Transform& transform : scene.transforms) {
 		if (transform.name.find("DrunkPerson") != std::string::npos)
@@ -200,13 +201,16 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 upVector = frame[2];
 
 		//Update velocity
-		if (playerAgent->collidedPrevFrame && (up.downs > 0 || space.downs > 0) )
+		if (playerAgent->collidedPrevFrame && space.downs > 0 )
 		{
 			playerAgent->velocity += upVector * jumpStrength;
 		}
 		playerAgent->velocity.y = -move.x;
+		playerAgent->velocity.x = move.y;
 		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
 		player->position += playerAgent->velocity * elapsed * timeFactor;
+		player->position.x = std::clamp<float>(player->position.x, -4.0f, 0.0f);
+		//std::cout << to_string(player->position) << std::endl;
 		if (player->position.z < -30.0f)
 		{
 			player->position = glm::vec3(0.0f, 0.0f, 4.0f);
