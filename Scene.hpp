@@ -32,6 +32,9 @@ struct Scene {
 		glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); //n.b. wxyz init order
 		glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
+		//Set this to false to hide any drawables using this transform
+		bool drawn = true;
+
 		//For collision
 		glm::vec3 radius;
 

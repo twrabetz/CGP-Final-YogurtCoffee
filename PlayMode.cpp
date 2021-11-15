@@ -75,6 +75,10 @@ PlayMode::PlayMode() : scene(*myScene) {
 			platforms.push_back(&transform);
 			collisionManager.registerAgent(&transform, true);
 		}
+		if (transform.name == "AimingCone")
+		{
+			aimingCone = &transform;
+		}
 		std::cout << transform.name << std::endl;
 	}
 
@@ -130,11 +134,6 @@ bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size)
 			space.pressed = true;
 			return true;
 		}
-		else if (evt.key.keysym.sym == SDLK_LSHIFT || evt.key.keysym.sym == SDLK_RSHIFT)
-		{
-			shift.downs += 1;
-			shift.pressed = true;
-		}
 	}
 	else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_a) {
@@ -157,17 +156,13 @@ bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size)
 			space.pressed = false;
 			return true;
 		}
-		else if (evt.key.keysym.sym == SDLK_LSHIFT || evt.key.keysym.sym == SDLK_RSHIFT)
-		{
-			shift.pressed = false;
-			return true;
-		}
 	}
 	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		shift.pressed = true;
+		mouse.pressed = true;
 	}
 	else if (evt.type == SDL_MOUSEBUTTONUP) {
-		shift.pressed = false;
+		mouse.pressed = false;
+		mouse.ups += 1;
     }
 	else if (evt.type == SDL_MOUSEMOTION) {
 		// convert to NDC coordinates
@@ -189,15 +184,15 @@ void PlayMode::update(float elapsed) {
 	{
 
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 10.0f;
+		constexpr float PlayerSpeed = 15.0f;
 		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
+		if (left.pressed && !right.pressed) move.x = -1.0f;
 		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
+		if (down.pressed && !up.pressed) move.y = -1.0f;
 		if (!down.pressed && up.pressed) move.y = 1.0f;
 
 		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed;
 
 		glm::mat4x3 frame = playerModel->make_local_to_parent();
 		//glm::vec3 forward = frame[0];
@@ -205,37 +200,46 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 upVector = frame[2];
 
 		//Update velocity
-		if (playerAgent->collidedPrevFrame && up.downs > 0)
+		if (playerAgent->collidedPrevFrame && (up.downs > 0 || space.downs > 0) )
 		{
 			playerAgent->velocity += upVector * jumpStrength;
 		}
-		playerAgent->velocity.y = -move.x * 75.0f;
-		playerAgent->velocity -= upVector * gravity * elapsed;
-		player->position += playerAgent->velocity * elapsed;
+		playerAgent->velocity.y = -move.x;
+		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
+		player->position += playerAgent->velocity * elapsed * timeFactor;
 		if (player->position.z < -30.0f)
 		{
 			player->position = glm::vec3(0.0f, 0.0f, 4.0f);
 			playerAgent->velocity = glm::vec3(0.0f);
 			//TODO: Reload the scene?
 		}
-		//Throw drunk person
-		if (heldDrunkPerson && space.downs > 0)
-		{
-			heldDrunkPerson->launch(glm::vec3(playerAgent->velocity.x * 3.0f, playerAgent->velocity.y * 3.0f, playerAgent->velocity.z * 0.33f) + upVector * 45.0f);
-			heldDrunkPerson = nullptr;
-		}
 
 		playerAgent->collidedPrevFrame = false;
 	}
 
-	//Time control
-	if (shift.pressed)
+	//Aiming
+	if (mouse.pressed && heldDrunkPerson != nullptr)
 	{
 		timeFactor = std::max<float>(timeFactor - timeFactorChangeRate * elapsed, minTimeFactor);
+		glm::vec3 mousePos = get_mouse_position();
+		glm::vec3 dir = glm::normalize(mousePos - player->position);
+		aimingCone->position = player->position + dir * aimingConeDistance;
+		aimingCone->rotation = glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir);
+		aimingCone->drawn = true;
 	}
 	else
 	{
+		aimingCone->drawn = false;
 		timeFactor = std::min<float>(timeFactor + timeFactorChangeRate * elapsed, maxTimeFactor);
+	}
+
+	//Throw drunk person
+	if (heldDrunkPerson && mouse.ups > 0)
+	{
+		glm::vec3 mousePos = get_mouse_position();
+		glm::vec3 dir = glm::normalize(mousePos - player->position);
+		heldDrunkPerson->launch(dir * 100.0f);
+		heldDrunkPerson = nullptr;
 	}
 
 	//Pick up drunk person if colliding with one
@@ -280,7 +284,8 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 	space.downs = 0;
-	shift.downs = 0;
+	mouse.downs = 0;
+	mouse.ups = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
