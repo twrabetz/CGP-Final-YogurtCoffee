@@ -37,3 +37,8 @@ void DrunkPerson::launch(glm::vec3 velocity)
 	agent->velocity = velocity;
 	agent->enabled = true;
 }
+
+void DrunkPerson::inTrashBin(Scene::Transform* trashBin)
+{
+	target = trashBin;
+}

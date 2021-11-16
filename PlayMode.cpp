@@ -81,6 +81,26 @@ PlayMode::PlayMode() : scene(*myScene) {
 		{
 			aimingCone = &transform;
 		}
+		if (transform.name.find("PlatformCollider_TrashCan") != std::string::npos){
+			//trashBins.push_back(collisionManager.registerAgent(&transform, false));
+			trashBins.push_back(new CollisionAgent(&transform));
+			std::cout << "Add trashBins" << std::endl;
+		}
+
+		if(transform.name == "SpiderRobot") 
+			SpiderRobot = &transform;
+		if(transform.name == "LFLegs_03"){
+			LFLegs_03 = &transform;
+			LFLegs_03_rotation = LFLegs_03->rotation;
+		}
+		else if(transform.name == "LMLegs_03"){
+			LMLegs_03 = &transform;
+			LMLegs_03_rotation = LMLegs_03->rotation;
+		}
+		else if(transform.name == "LBLegs_03"){
+			LBLegs_03 = &transform;
+			LBLegs_03_rotation = LBLegs_03->rotation;
+		}
 	}
 
 	std::cout << platforms.size() << std::endl;
@@ -183,13 +203,30 @@ void PlayMode::update(float elapsed) {
 
 	//move the player:
 	{
+		wobble += elapsed;
+		wobble -= std::floor(wobble);
+
 
 		//combine inputs into a move:
 		constexpr float PlayerSpeed = 15.0f;
 		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x = -1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y = -1.0f;
+		if (left.pressed && !right.pressed) {
+			move.x = -1.0f;
+			SpiderAnimation();
+			if(SpiderRobot->scale.y < 0){
+				SpiderRobot->scale.y = SpiderRobot->scale.y * -1.0f;
+			}
+		}
+		if (!left.pressed && right.pressed) {
+			move.x = 1.0f;
+			SpiderAnimation();
+			if(SpiderRobot->scale.y > 0){
+				SpiderRobot->scale.y = SpiderRobot->scale.y * -1.0f;
+			}
+		}
+		if (down.pressed && !up.pressed) {
+			move.y = -1.0f;
+		}
 		if (!down.pressed && up.pressed) move.y = 1.0f;
 
 		//make it so that moving diagonally doesn't go faster:
@@ -209,7 +246,7 @@ void PlayMode::update(float elapsed) {
 		playerAgent->velocity.x = move.y;
 		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
 		player->position += playerAgent->velocity * elapsed * timeFactor;
-		player->position.x = std::clamp<float>(player->position.x, -4.0f, 0.0f);
+		player->position.x = glm::clamp<float>(player->position.x, -4.0f, 0.0f);
 		//std::cout << to_string(player->position) << std::endl;
 		if (player->position.z < -30.0f)
 		{
@@ -266,8 +303,12 @@ void PlayMode::update(float elapsed) {
 		for (CollisionAgent* trashCan : trashBins)
 		{
 			CollisionAxis outAxis = CollisionAxis::X;
-			if (collisionManager.checkCollision(drunkPerson->agent, trashCan, outAxis) && outAxis == CollisionAxis::Z)
+			if (collisionManager.checkCollision(drunkPerson->agent, trashCan, outAxis) /*&& outAxis == CollisionAxis::Z*/)
 			{
+				std::cout << "hit";
+				score ++;
+				drunkPerson->inTrashBin(trashCan->positionTransform);
+				heldDrunkPerson = nullptr;
 				collisionManager.unregisterAgent(drunkPerson->agent, false);
 				break;
 			}
@@ -326,15 +367,23 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.09f;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
+		lines.draw_text("A/D moves left/right; S/W moves forward/backward; Space jumps; Mouse launches the person",
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
+		lines.draw_text("A/D moves left/right; S/W moves forward/backward; Space jumps; Mouse launches the person",
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		lines.draw_text("Score: ",
+			glm::vec3(aspect - 6.0f * H, 0.9f - 0.1f * H, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xbd, 0xd6, 0xff, 0x00));
+		lines.draw_text(std::to_string(score),
+			glm::vec3(aspect - 3.0f * H, 0.9f - 0.1f * H, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xbd, 0xd6, 0xff, 0x00));
 	}
 }
 
@@ -343,4 +392,13 @@ glm::vec3 PlayMode::get_mouse_position() const {
 	glm::vec3 world_mouse_pos = inv_view_proj * glm::vec4(mouse_pos.x, mouse_pos.y, 0.f, 1.f);
 	world_mouse_pos.x = 0.f; // This scene is built in that way!
 	return world_mouse_pos;
+}
+
+void PlayMode::SpiderAnimation(){
+	LFLegs_03->rotation = LFLegs_03_rotation * glm::angleAxis(
+	glm::radians(30.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))), glm::vec3(1.0f, 1.0f, 0.0f));
+	LMLegs_03->rotation = LMLegs_03_rotation * glm::angleAxis(
+	glm::radians(30.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))), glm::vec3(0.0f, 1.0f, 0.0f));
+	LBLegs_03->rotation = LBLegs_03_rotation * glm::angleAxis(
+	glm::radians(30.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))), glm::vec3(-1.0f, 1.0f, 0.0f));
 }

@@ -18,6 +18,7 @@ struct PlayMode : Mode {
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+	void SpiderAnimation();
 
 	//----- game state -----
 
@@ -36,6 +37,16 @@ struct PlayMode : Mode {
 	Scene::Transform* cameraAnchor = nullptr;
 	std::vector<Scene::Transform*> platforms;
 
+	Scene::Transform* SpiderRobot = nullptr;
+	Scene::Transform* LFLegs_03 = nullptr;
+	glm::quat LFLegs_03_rotation;
+	Scene::Transform* LMLegs_03 = nullptr;
+	glm::quat LMLegs_03_rotation;
+	Scene::Transform* LBLegs_03 = nullptr;
+	glm::quat LBLegs_03_rotation;
+
+	float wobble = 0.0f;
+
 	CollisionAgent* playerAgent;
 	DrunkPerson* heldDrunkPerson = nullptr;
 
@@ -45,7 +56,7 @@ struct PlayMode : Mode {
 	float timeFactorChangeRate = 4.0f;
 
 	std::vector<DrunkPerson*> drunkPeople;
-	std::vector<CollisionAgent*> trashBins;
+	std::vector<CollisionAgent*> trashBins; //TODO: register the trashbin to code
 
 	CollisionManager collisionManager = CollisionManager();
 
@@ -65,4 +76,7 @@ struct PlayMode : Mode {
 	Scene::Camera *camera = nullptr;
 
 	glm::vec3 get_mouse_position() const;
+
+	// Game Manager
+	int score = 0;
 };

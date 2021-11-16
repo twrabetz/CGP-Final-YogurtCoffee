@@ -17,4 +17,6 @@ struct DrunkPerson
 	void pickUp();
 
 	void launch(glm::vec3 velocity);
+
+	void inTrashBin(Scene::Transform* trashBin);
 };
