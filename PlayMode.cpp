@@ -7,12 +7,13 @@
 #include "Load.hpp"
 #include "gl_errors.hpp"
 #include "data_path.hpp"
+#include "Sound.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 #include <random>
-
+#include <sstream>
 #include <iostream>
 
 GLuint meshes_for_lit_color_texture_program = 0;
@@ -55,6 +56,10 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 
 		transform->radius = glm::vec3((mesh.max.x - mesh.min.x) / 2, (mesh.max.y - mesh.min.y) / 2, (mesh.max.z - mesh.min.z) / 2);
 	});
+});
+
+Load< Sound::Sample > PartyMusic(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("musics/Party_in_the_house.wav"));
 });
 
 PlayMode::PlayMode() : scene(*myScene) {
@@ -114,9 +119,14 @@ PlayMode::PlayMode() : scene(*myScene) {
 
 	playerAgent = collisionManager.registerAgent(player, playerModel, false);
 
+	bgm_loop = Sound::loop(*PartyMusic, 1.0f, 10.0f);
+
+
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
+
+
 
 }
 

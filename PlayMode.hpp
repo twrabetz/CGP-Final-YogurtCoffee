@@ -1,6 +1,7 @@
 #include "Mode.hpp"
 
 #include "Scene.hpp"
+#include "Sound.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -76,6 +77,8 @@ struct PlayMode : Mode {
 	Scene::Camera *camera = nullptr;
 
 	glm::vec3 get_mouse_position() const;
+
+	std::shared_ptr< Sound::PlayingSample > bgm_loop;
 
 	// Game Manager
 	int score = 0;
