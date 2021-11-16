@@ -58,14 +58,30 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 	});
 });
 
-Load< Sound::Sample > PartyMusic(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("musics/Party_in_the_house.wav"));
+Load< Sound::Sample > PartyMusic(LoadTagEarly, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("musics/Party_in_the_house.opus"));
 });
+
+Load< Sound::Sample > Cashier(LoadTagEarly, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("SFX/Cashier.opus"));
+	});
+
+Load< Sound::Sample > Throw1(LoadTagEarly, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("SFX/Flying_Moaning_001.opus"));
+	});
+Load< Sound::Sample > Throw2(LoadTagEarly, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("SFX/Flying_Moaning_002.opus"));
+	});
+Load< Sound::Sample > Throw3(LoadTagEarly, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("SFX/Flying_Moaning_003.opus"));
+	});
+Load< Sound::Sample > Throw4(LoadTagEarly, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("SFX/Flying_Moaning_004.opus"));
+	});
 
 PlayMode::PlayMode() : scene(*myScene) {
 
 	for (Scene::Transform& transform : scene.transforms) {
-		std::cout << transform.name << std::endl;
 		if (transform.name == "Player")
 			player = &transform;
 		if (transform.name == "CameraAnchor")
@@ -78,7 +94,6 @@ PlayMode::PlayMode() : scene(*myScene) {
 		}
 		if (transform.name.find("Platform") != std::string::npos)
 		{
-			std::cout << "Adding platform" << std::endl;
 			platforms.push_back(&transform);
 			collisionManager.registerAgent(&transform, true);
 		}
@@ -89,7 +104,6 @@ PlayMode::PlayMode() : scene(*myScene) {
 		if (transform.name.find("PlatformCollider_TrashCan") != std::string::npos){
 			//trashBins.push_back(collisionManager.registerAgent(&transform, false));
 			trashBins.push_back(new CollisionAgent(&transform));
-			std::cout << "Add trashBins" << std::endl;
 		}
 
 		if(transform.name == "SpiderRobot") 
@@ -119,8 +133,10 @@ PlayMode::PlayMode() : scene(*myScene) {
 
 	playerAgent = collisionManager.registerAgent(player, playerModel, false);
 
-	bgm_loop = Sound::loop(*PartyMusic, 1.0f, 10.0f);
+	bgm_loop = Sound::loop(*PartyMusic);
 
+	cashiers = { Cashier };
+	throws = { Throw1, Throw2, Throw3, Throw4 };
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -258,7 +274,7 @@ void PlayMode::update(float elapsed) {
 		playerAgent->velocity.x = move.y;
 		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
 		player->position += playerAgent->velocity * elapsed * timeFactor;
-		player->position.x = glm::clamp<float>(player->position.x, -4.0f, 0.0f);
+		player->position.x = glm::clamp<float>(player->position.x, -3.0f, 0.0f);
 		//std::cout << to_string(player->position) << std::endl;
 		if (player->position.z < -30.0f)
 		{
@@ -293,6 +309,7 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 dir = glm::normalize(mousePos - player->position);
 		heldDrunkPerson->launch(dir * 100.0f);
 		heldDrunkPerson = nullptr;
+		Sound::play(*throws[rand() % throws.size()]);
 	}
 
 	//Pick up drunk person if colliding with one
@@ -318,6 +335,7 @@ void PlayMode::update(float elapsed) {
 			if (drunkPerson->agent->enabled && collisionManager.checkCollision(drunkPerson->agent, trashCan, outAxis) 
 				&& outAxis == CollisionAxis::Z)
 			{
+				Sound::play(*cashiers[rand() % cashiers.size()]);
 				std::cout << "hit";
 				score ++;
 				drunkPerson->inTrashBin(trashCan->positionTransform);

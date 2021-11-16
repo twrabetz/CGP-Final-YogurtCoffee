@@ -80,6 +80,9 @@ struct PlayMode : Mode {
 
 	std::shared_ptr< Sound::PlayingSample > bgm_loop;
 
+	std::vector<Sound::Sample const*> cashiers;
+	std::vector<Sound::Sample const*> throws;
+
 	// Game Manager
 	int score = 0;
 };
