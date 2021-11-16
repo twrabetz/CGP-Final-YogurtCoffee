@@ -71,6 +71,10 @@ glm::mat4x3 Scene::Transform::make_world_to_local() const {
 	}
 }
 
+glm::vec3 Scene::Transform::get_global_position() const {
+	return make_local_to_world() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 //-------------------------
 
 glm::mat4 Scene::Camera::make_projection() const {

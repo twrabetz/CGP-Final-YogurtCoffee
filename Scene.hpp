@@ -49,6 +49,8 @@ struct Scene {
 		glm::mat4x3 make_local_to_world() const;
 		glm::mat4x3 make_world_to_local() const;
 
+		glm::vec3 get_global_position() const;
+
 		//since hierarchy is tracked through pointers, copy-constructing a transform  is not advised:
 		Transform(Transform const &) = delete;
 		Transform(Transform const&&) = delete;

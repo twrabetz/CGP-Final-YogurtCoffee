@@ -18,7 +18,7 @@ void DrunkPerson::update(float elapsed, float gravity)
 	{
 		//Lerp to target
 		agent->velocity = glm::vec3(0.0f);
-		glm::vec3 diff = target->position + pickupOffset - agent->positionTransform->position;
+		glm::vec3 diff = target->get_global_position() + pickupOffset - agent->GetPosition();
 		agent->positionTransform->position += glm::normalize(diff) * std::min<float>(glm::length(diff), lerpSpeed);
 	}
 
@@ -40,5 +40,6 @@ void DrunkPerson::launch(glm::vec3 velocity)
 
 void DrunkPerson::inTrashBin(Scene::Transform* trashBin)
 {
+	agent->enabled = false;
 	target = trashBin;
 }
