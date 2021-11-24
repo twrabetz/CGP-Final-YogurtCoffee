@@ -10,6 +10,7 @@
 #include <deque>
 #include "CollisionManager.hpp"
 #include "DrunkPerson.hpp"
+#include "FrameBuffers.hpp"
 
 struct PlayMode : Mode {
 	PlayMode();

@@ -1,7 +1,8 @@
 #include "PlayMode.hpp"
 
 #include "LitColorTextureProgram.hpp"
-#include "FrameBuffers.hpp"
+#include "BasePassProgram.hpp"
+#include "screen_quad_helper.hpp"
 
 #include "DrawLines.hpp"
 #include "Mesh.hpp"
@@ -18,11 +19,16 @@
 #include <iostream>
 
 /** Load render related components **/
-GLuint meshes_for_lit_color_texture_program = 0;
+// mesh buffer
+GLuint meshes_for_basepass_program = 0;
 Load< MeshBuffer > meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("SquidgeBall.pnct"));
-	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+	meshes_for_basepass_program = ret->make_vao_for_program(base_pass_program->program);
 	return ret;
+});
+// screen quad in NDC space
+Load< ScreenQuad > screen_quad(LoadTagDefault, [](){
+	return new ScreenQuad();
 });
 /** Render related components finished **/
 
@@ -49,9 +55,9 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 			scene.drawables.emplace_back(transform);
 			Scene::Drawable& drawable = scene.drawables.back();
 
-			drawable.pipeline = lit_color_texture_program_pipeline;
+			drawable.pipeline = base_pass_program_pipeline;
 
-			drawable.pipeline.vao = meshes_for_lit_color_texture_program;
+			drawable.pipeline.vao = meshes_for_basepass_program;
 			drawable.pipeline.type = mesh.type;
 			drawable.pipeline.start = mesh.start;
 			drawable.pipeline.count = mesh.count;
@@ -371,24 +377,56 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//update camera aspect ratio for drawable:
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
-	//set up light type and position for lit_color_texture_program:
-	// TODO: consider using the Light(s) in the scene to do this
-	glUseProgram(lit_color_texture_program->program);
-	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
-	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f,-1.0f)));
-	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f) * 0.9f));
-	glUseProgram(0);
+	/** Multipass rendering **/
+	// ---- preparation ----
+	fbs.resize(drawable_size); // update screen size
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClearDepth(1.0f); //1.0 is actually the default value to clear the depth buffer to, but FYI you can change it.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// some camera related parameters
+	glm::mat4 world_to_clip = camera->make_projection() * glm::mat4(camera->transform->make_world_to_local());
+	glm::vec3 eye = camera->transform->make_local_to_world()[3];
 
+	// ---- base pass ----
+	glBindFramebuffer(GL_FRAMEBUFFER, fbs.objects_fb); // render to objects fb
+
+	// clean buffer
+	constexpr GLfloat zeros[4] = {0.f};
+	glClearBufferfv(GL_COLOR, 0, zeros);
+	glClearBufferfv(GL_COLOR, 1, zeros);
+	glClearBufferfv(GL_COLOR, 2, zeros);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
+	glDepthFunc(GL_LEQUAL);
 
-	GL_ERRORS(); //print any errors produced by this setup code
-
+	// draw base pass
 	scene.draw(*camera);
+
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GL_ERRORS();
+
+	// debug: draw buffer onto screen
+	glClearColor(.2f, .2f, .2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+
+	// use copy program
+	glUseProgram(screen_quad->copy_program);
+	// bind screen quad vertices
+	glBindVertexArray(screen_quad->vao);
+	// bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbs.position_tex);
+	// draw
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	// clean
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

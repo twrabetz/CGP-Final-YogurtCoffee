@@ -18,4 +18,6 @@ struct ScreenQuad
     ~ScreenQuad();
 
     GLuint vao = -1U;
+
+    GLuint copy_program = -1U;
 };

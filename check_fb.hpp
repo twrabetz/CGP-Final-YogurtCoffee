@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GL.hpp"
+#include <string>
 #include <stdexcept>
 
 inline void check_fb() {
