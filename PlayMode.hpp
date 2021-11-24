@@ -21,6 +21,9 @@ struct PlayMode : Mode {
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 	void SpiderAnimation();
 
+	// ---- render related ----
+	FrameBuffers fbs;
+
 	//----- game state -----
 
 	//input tracking:

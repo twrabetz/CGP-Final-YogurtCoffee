@@ -1,6 +1,7 @@
 #include "PlayMode.hpp"
 
 #include "LitColorTextureProgram.hpp"
+#include "FrameBuffers.hpp"
 
 #include "DrawLines.hpp"
 #include "Mesh.hpp"
@@ -16,12 +17,14 @@
 #include <sstream>
 #include <iostream>
 
+/** Load render related components **/
 GLuint meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("SquidgeBall.pnct"));
 	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret;
 });
+/** Render related components finished **/
 
 std::string toString(glm::vec3 input)
 {
