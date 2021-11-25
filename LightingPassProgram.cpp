@@ -81,7 +81,6 @@ LightingPassProgram::LightingPassProgram() {
         "    vec3 diffuse = e * albedo.rgb * 0.7; // diffuse\n"
         "    vec3 specular = pow(max(0., dot(n, h)), 5.) * e * 0.2;\n"
         "    fragColor = vec4(ambient + diffuse + specular, albedo.a);\n"
-        "    fragColor = vec4(1.f, 1.f, 1.f, 1.f);\n"
         "}\n"
     );
 
