@@ -1,13 +1,15 @@
-.PHONY : all
-
 #n.b. the '-y' sets autoexec scripts to 'on' so that driver expressions will work
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-	BLENDER = /Applications/Blender.app/Contents/MacOS/Blender -y
-else ifeq ($(UNAME_S),Linux)
-	BLENDER = ../../blender-2.93.4-linux-x64/blender -y
+ifeq ($(OS),Windows_NT)
+	BLENDER := "C:\Program Files\Blender Foundation\Blender 2.93\blender.exe"
 else
-	BLENDER = blender
+	UNAME_S = $(shell uname -s)
+	ifeq ($(UNAME_S),Darwin)
+		BLENDER := /Applications/Blender/blender.app/Contents/MacOS/blender -y
+	else ifeq ($(UNAME_S),Linux)
+		BLENDER := ../../blender-2.93.4-linux-x64/blender -y
+	else
+		BLENDER := blender
+	endif
 endif
 
 EXPORT_MESHES=export-meshes.py
@@ -16,13 +18,15 @@ EXPORT_SCENE=export-scene.py
 
 DIST=../dist
 
+.PHONY : all
+
 all : \
-	$(DIST)/castle.pnct \
-	$(DIST)/castle.scene \
+	$(DIST)/SquidgeBall.pnct \
+	$(DIST)/SquidgeBall.scene \
 
 
-$(DIST)/castle.scene : castle.blend $(EXPORT_SCENE)
-	$(BLENDER) --background --python $(EXPORT_SCENE) -- '$<':Collection '$@'
+$(DIST)/SquidgeBall.scene : SquidgeBall_chen.blend $(EXPORT_SCENE)
+	$(BLENDER) --background --python $(EXPORT_SCENE) -- '$<' '$@'
 
-$(DIST)/castle.pnct : castle.blend $(EXPORT_MESHES)
-	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<':Collection '$@'
+$(DIST)/SquidgeBall.pnct : SquidgeBall_chen.blend $(EXPORT_MESHES)
+	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<' '$@'

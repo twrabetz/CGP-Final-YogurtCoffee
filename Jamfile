@@ -138,6 +138,10 @@ GAME_NAMES =
 	PlayMode
 	main
 	LitColorTextureProgram
+	BasePassProgram
+	LightingPassProgram
+	FrameBuffers
+	screen_quad_helper
 	Sound
 	load_wav
 	load_opus

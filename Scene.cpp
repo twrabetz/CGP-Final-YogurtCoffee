@@ -81,8 +81,8 @@ glm::mat4 Scene::Camera::make_projection() const {
 	//We used https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/orthographic-projection-matrix
 	// handmade parameters from manual calculation of transforms of the scene
 	// aspect ratio is made to close to 16:9, because the default window size is 1280x760
-	return glm::ortho<float>(-27, 40, -26, 12, 0, 100);
-	//return glm::infinitePerspective(fovy, aspect, near);
+	// return glm::ortho<float>(-27, 40, -26, 12, 0, 100);
+	return glm::infinitePerspective(fovy, aspect, near);
 }
 
 //-------------------------

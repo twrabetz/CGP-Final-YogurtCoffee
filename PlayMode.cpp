@@ -1,6 +1,9 @@
 #include "PlayMode.hpp"
 
 #include "LitColorTextureProgram.hpp"
+#include "BasePassProgram.hpp"
+#include "LightingPassProgram.hpp"
+#include "screen_quad_helper.hpp"
 
 #include "DrawLines.hpp"
 #include "Mesh.hpp"
@@ -16,12 +19,19 @@
 #include <sstream>
 #include <iostream>
 
-GLuint meshes_for_lit_color_texture_program = 0;
+/** Load render related components **/
+// mesh buffer
+GLuint meshes_for_basepass_program = 0;
 Load< MeshBuffer > meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("SquidgeBall.pnct"));
-	meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+	meshes_for_basepass_program = ret->make_vao_for_program(base_pass_program->program);
 	return ret;
 });
+// screen quad in NDC space
+Load< ScreenQuad > screen_quad(LoadTagDefault, [](){
+	return new ScreenQuad();
+});
+/** Render related components finished **/
 
 std::string toString(glm::vec3 input)
 {
@@ -46,9 +56,9 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 			scene.drawables.emplace_back(transform);
 			Scene::Drawable& drawable = scene.drawables.back();
 
-			drawable.pipeline = lit_color_texture_program_pipeline;
+			drawable.pipeline = base_pass_program_pipeline;
 
-			drawable.pipeline.vao = meshes_for_lit_color_texture_program;
+			drawable.pipeline.vao = meshes_for_basepass_program;
 			drawable.pipeline.type = mesh.type;
 			drawable.pipeline.start = mesh.start;
 			drawable.pipeline.count = mesh.count;
@@ -141,9 +151,6 @@ PlayMode::PlayMode() : scene(*myScene) {
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
-
-
-
 }
 
 PlayMode::~PlayMode() {
@@ -362,30 +369,165 @@ void PlayMode::update(float elapsed) {
 	space.downs = 0;
 	mouse.downs = 0;
 	mouse.ups = 0;
+
+	// ---- update camera position ----
+	{
+		float blend = std::pow(camera_move_damp, elapsed);
+		cameraAnchor->position = glm::mix(
+			player->position,
+			cameraAnchor->position,
+			blend
+		);
+	}
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//update camera aspect ratio for drawable:
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
-	//set up light type and position for lit_color_texture_program:
-	// TODO: consider using the Light(s) in the scene to do this
-	glUseProgram(lit_color_texture_program->program);
-	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
-	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f,-1.0f)));
-	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.95f) * 0.9f));
-	glUseProgram(0);
+	/** Multipass rendering **/
+	/**
+	 * The rendering procedure consists of 3 passes
+	 * 1. Base pass: render the visible gemoetry data to buffer for later use
+	 * 2. Lighting pass: calculate lighting with geometry data and render to an output
+	 * 3. Postprocessing pass: apply some VFX with shaders including:
+	 *   - linear fog
+	 *   - fake fog scattering
+	 *   - HDR & tone mapping
+	 *   - glow
+	 */
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClearDepth(1.0f); //1.0 is actually the default value to clear the depth buffer to, but FYI you can change it.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// ---- preparation ----
+	fbs.resize(drawable_size); // update screen size
 
+	// some camera related parameters
+	glm::mat4 world_to_clip = camera->make_projection() * glm::mat4(camera->transform->make_world_to_local());
+	glm::vec3 eye = camera->transform->make_local_to_world()[3];
+
+	// ---- base pass ----
+	glBindFramebuffer(GL_FRAMEBUFFER, fbs.objects_fb); // render to objects fb
+
+	// clean buffer
+	constexpr GLfloat zeros[4] = {0.f};
+	glClearBufferfv(GL_COLOR, 0, zeros);
+	glClearBufferfv(GL_COLOR, 1, zeros);
+	glClearBufferfv(GL_COLOR, 2, zeros);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
+	glDepthFunc(GL_LEQUAL);
 
-	GL_ERRORS(); //print any errors produced by this setup code
-
+	// draw base pass
 	scene.draw(*camera);
+
+	// unbind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GL_ERRORS();
+
+	// ---- lighting pass ----
+	glBindFramebuffer(GL_FRAMEBUFFER, fbs.lights_fb); // output to lights fb
+	// clean
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+	// setting face culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	// setting blend as addition
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glDepthMask(GL_FALSE); // do not modify z-buffer
+	// setting program
+	glUseProgram(lighting_pass_program->program);
+	// use light volume
+	//TODO: use different light meshes. For simplicity,
+	// we just set a large radius for directional light
+	glBindVertexArray(lighting_pass_program->lighting_sphere_vao);
+	// some constant uniforms
+	glUniform3fv(lighting_pass_program->EYE_vec3, 1, glm::value_ptr(eye));
+	// bind g-buffer
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbs.position_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbs.normal_tex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, fbs.albedo_tex);
+	// render every light
+	for (const auto &light : scene.lights) {
+		glm::mat4 light_to_world = light.transform->make_local_to_world();
+		// upload light specific uniforms
+		glUniform3fv(lighting_pass_program->LIGHT_LOCATION_vec3, 1, glm::value_ptr(glm::vec3(light_to_world[3])));
+		glUniform3fv(lighting_pass_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(light.energy));
+		// upload light tpye specific uniforms
+		switch (light.type) {
+			case Scene::Light::Point: {
+				glUniform1i(lighting_pass_program->LIGHT_TYPE_int, 0);
+				// calc light volume radius
+				constexpr float energy_thresh = 1.f / 512.f;
+				// energy lower than threshold is considered no influence
+				float R = std::sqrt(glm::compMax(light.energy) / energy_thresh);
+				light_to_world = glm::scale(light_to_world, glm::vec3{R});
+				break;
+			}
+			case Scene::Light::Directional: {
+				glUniform1i(lighting_pass_program->LIGHT_TYPE_int, 3);
+				glUniform3fv(lighting_pass_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(-light_to_world[2])));
+				constexpr float fake_radius = 1024.f;
+				light_to_world = glm::scale(light_to_world, glm::vec3{fake_radius});
+				break;
+			}
+			default:
+				// other light types not supported yet
+				continue;
+		}
+		// send object to clip mat
+		glUniformMatrix4fv(lighting_pass_program->OBJECT_TO_CLIP_mat4, 1, GL_FALSE, glm::value_ptr(world_to_clip * light_to_world));
+
+		// draw
+		const auto &mesh = lighting_pass_program->lighting_sphere;
+		glDrawArrays(mesh.type, mesh.start, mesh.count);
+	}
+	// clean
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindVertexArray(0);
+
+	glDepthMask(GL_TRUE);
+
+	glDisable(GL_CULL_FACE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GL_ERRORS();
+
+	// ---- debug: draw buffer onto screen
+	glClearColor(.2f, .2f, .2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+
+	// use copy program
+	glUseProgram(screen_quad->copy_program);
+	// bind screen quad vertices
+	glBindVertexArray(screen_quad->vao);
+	// bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbs.output_tex);
+	// draw
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	// clean
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);
