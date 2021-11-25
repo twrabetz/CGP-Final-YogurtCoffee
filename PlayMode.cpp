@@ -372,7 +372,7 @@ void PlayMode::update(float elapsed) {
 
 	// ---- update camera position ----
 	{
-		float blend = std::powf(camera_move_damp, elapsed);
+		float blend = std::pow(camera_move_damp, elapsed);
 		cameraAnchor->position = glm::mix(
 			player->position,
 			cameraAnchor->position,
