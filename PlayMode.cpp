@@ -151,9 +151,6 @@ PlayMode::PlayMode() : scene(*myScene) {
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
-
-
-
 }
 
 PlayMode::~PlayMode() {
@@ -372,6 +369,16 @@ void PlayMode::update(float elapsed) {
 	space.downs = 0;
 	mouse.downs = 0;
 	mouse.ups = 0;
+
+	// ---- update camera position ----
+	{
+		float blend = std::powf(camera_move_damp, elapsed);
+		cameraAnchor->position = glm::mix(
+			player->position,
+			cameraAnchor->position,
+			blend
+		);
+	}
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {

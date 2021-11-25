@@ -25,6 +25,29 @@ struct PlayMode : Mode {
 	// ---- render related ----
 	FrameBuffers fbs;
 
+	// ---- camera control ----
+	/**
+	 * About camera move
+	 * 
+	 * - Camera will have a consistent offset & rotation between itself and player
+	 *   by setting a constant value to camera transform in Blender.
+	 *   Thus **YOU SHOULD NOT CHANGE CAMERA'S TRANSFORM HERE**.
+	 *   You should move cameraAnchor to move the camera.
+	 * 	 To adjust the constant offset, you can do that in Blender to have
+	 *   a better result.
+	 * 
+	 * - Camera will follow player's movement smoothly. We use
+	 *   `f(t) = 1 - a^t` function to smooth camera move, where `a`
+	 *   is the damp factor below.
+	 *   It is cameraAnchor that follows player.
+	 * 	 Function is inspired by:
+	 *   https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
+	 */
+	Scene::Camera *camera = nullptr;
+	Scene::Transform* cameraAnchor = nullptr;
+	// damping factor (0, 1). Approximately camera will approach to desination in 10*a seconds.
+	static constexpr float camera_move_damp = 0.2f;
+
 	//----- game state -----
 
 	//input tracking:
@@ -39,7 +62,6 @@ struct PlayMode : Mode {
 
 	Scene::Transform* player = nullptr;
 	Scene::Transform* playerModel = nullptr;
-	Scene::Transform* cameraAnchor = nullptr;
 	std::vector<Scene::Transform*> platforms;
 
 	Scene::Transform* SpiderRobot = nullptr;
@@ -77,9 +99,6 @@ struct PlayMode : Mode {
 	float gravity = 200.0f;
 	float jumpStrength = 50.0f;
 	
-	//camera:
-	Scene::Camera *camera = nullptr;
-
 	glm::vec3 get_mouse_position() const;
 
 	std::shared_ptr< Sound::PlayingSample > bgm_loop;
