@@ -454,10 +454,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		// upload light specific uniforms
 		glUniform3fv(lighting_pass_program->LIGHT_LOCATION_vec3, 1, glm::value_ptr(glm::vec3(light_to_world[3])));
 		glUniform3fv(lighting_pass_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(light.energy));
-		glUniform1i(lighting_pass_program->LIGHT_TYPE_int, light.type);
 		// upload light tpye specific uniforms
 		switch (light.type) {
 			case Scene::Light::Point: {
+				glUniform1i(lighting_pass_program->LIGHT_TYPE_int, 0);
 				// calc light volume radius
 				constexpr float energy_thresh = 1.f / 512.f;
 				// energy lower than threshold is considered no influence
@@ -466,6 +466,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				break;
 			}
 			case Scene::Light::Directional: {
+				glUniform1i(lighting_pass_program->LIGHT_TYPE_int, 3);
 				glUniform3fv(lighting_pass_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(-light_to_world[2])));
 				constexpr float fake_radius = 1024.f;
 				light_to_world = glm::scale(light_to_world, glm::vec3{fake_radius});
