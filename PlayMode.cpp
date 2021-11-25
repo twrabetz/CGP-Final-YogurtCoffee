@@ -2,6 +2,7 @@
 
 #include "LitColorTextureProgram.hpp"
 #include "BasePassProgram.hpp"
+#include "LightingPassProgram.hpp"
 #include "screen_quad_helper.hpp"
 
 #include "DrawLines.hpp"
@@ -378,6 +379,17 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
 	/** Multipass rendering **/
+	/**
+	 * The rendering procedure consists of 3 passes
+	 * 1. Base pass: render the visible gemoetry data to buffer for later use
+	 * 2. Lighting pass: calculate lighting with geometry data and render to an output
+	 * 3. Postprocessing pass: apply some VFX with shaders including:
+	 *   - linear fog
+	 *   - fake fog scattering
+	 *   - HDR & tone mapping
+	 *   - glow
+	 */
+
 	// ---- preparation ----
 	fbs.resize(drawable_size); // update screen size
 
@@ -407,7 +419,88 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	GL_ERRORS();
 
-	// debug: draw buffer onto screen
+	// ---- lighting pass ----
+	glBindFramebuffer(GL_FRAMEBUFFER, fbs.lights_fb); // output to lights fb
+	// clean
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+	// setting face culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	// setting blend as addition
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glDepthMask(GL_FALSE); // do not modify z-buffer
+	// setting program
+	glUseProgram(lighting_pass_program->program);
+	// use light volume
+	//TODO: use different light meshes. For simplicity,
+	// we just set a large radius for directional light
+	glBindVertexArray(lighting_pass_program->lighting_sphere_vao);
+	// some constant uniforms
+	glUniform3fv(lighting_pass_program->EYE_vec3, 1, glm::value_ptr(eye));
+	// bind g-buffer
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbs.position_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbs.normal_tex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, fbs.albedo_tex);
+	// render every light
+	for (const auto &light : scene.lights) {
+		glm::mat4 light_to_world = light.transform->make_local_to_world();
+		// upload light specific uniforms
+		glUniform3fv(lighting_pass_program->LIGHT_LOCATION_vec3, 1, glm::value_ptr(glm::vec3(light_to_world[3])));
+		glUniform3fv(lighting_pass_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(light.energy));
+		glUniform1i(lighting_pass_program->LIGHT_TYPE_int, light.type);
+		// upload light tpye specific uniforms
+		switch (light.type) {
+			case Scene::Light::Point: {
+				// calc light volume radius
+				constexpr float energy_thresh = 1.f / 512.f;
+				// energy lower than threshold is considered no influence
+				float R = std::sqrt(glm::compMax(light.energy) / energy_thresh);
+				light_to_world = glm::scale(light_to_world, glm::vec3{R});
+				break;
+			}
+			case Scene::Light::Directional: {
+				glUniform3fv(lighting_pass_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(-light_to_world[2])));
+				constexpr float fake_radius = 1024.f;
+				light_to_world = glm::scale(light_to_world, glm::vec3{fake_radius});
+				break;
+			}
+			default:
+				// other light types not supported yet
+				continue;
+		}
+		// send object to clip mat
+		glUniformMatrix4fv(lighting_pass_program->OBJECT_TO_CLIP_mat4, 1, GL_FALSE, glm::value_ptr(world_to_clip * light_to_world));
+
+		// draw
+		const auto &mesh = lighting_pass_program->lighting_sphere;
+		glDrawArrays(mesh.type, mesh.start, mesh.count);
+	}
+	// clean
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindVertexArray(0);
+
+	glDepthMask(GL_TRUE);
+
+	glDisable(GL_CULL_FACE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GL_ERRORS();
+
+	// ---- debug: draw buffer onto screen
 	glClearColor(.2f, .2f, .2f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -420,7 +513,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	glBindVertexArray(screen_quad->vao);
 	// bind texture
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbs.position_tex);
+	glBindTexture(GL_TEXTURE_2D, fbs.output_tex);
 	// draw
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	// clean

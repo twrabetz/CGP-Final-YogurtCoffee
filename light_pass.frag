@@ -47,7 +47,9 @@ void main() {
             break;
     }
     
+    // Blinn-Phong
     vec3 ambient = albedo.rgb * 0.1; // hardcoded
-    vec3 diffuse = e * albedo.rgb; // diffuse
-    fragColor = vec4(ambient + diffuse, albedo.a);
+    vec3 diffuse = e * albedo.rgb * 0.7; // diffuse
+    vec3 specular = pow(max(0., dot(n, h)), 5.) * e * 0.2;
+    fragColor = vec4(ambient + diffuse + specular, albedo.a);
 }
