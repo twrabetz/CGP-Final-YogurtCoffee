@@ -561,10 +561,23 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 }
 
 glm::vec3 PlayMode::get_mouse_position() const {
-	glm::mat4 inv_view_proj = camera->transform->make_local_to_world() * glm::inverse(camera->make_projection());
-	glm::vec3 world_mouse_pos = inv_view_proj * glm::vec4(mouse_pos.x, mouse_pos.y, 0.f, 1.f);
-	world_mouse_pos.x = 0.f; // This scene is built in that way!
-	return world_mouse_pos;
+	auto camera_to_world = camera->transform->make_local_to_world();
+	// transform clip space endpoint to view space
+	glm::mat4 inv_projection = glm::inverse(camera->make_projection());
+	glm::vec4 mouse_view_endpoint = inv_projection * glm::vec4(mouse_pos.x, mouse_pos.y, -1.f, 1.f);
+	// perspective divide
+	glm::vec4 mouse_view_dir = mouse_view_endpoint / mouse_view_endpoint.w;
+	// convert to homogeneous vector in view space, camera origin
+	mouse_view_dir.w = 0;
+	// view space to world space
+	glm::vec3 mouse_world_dir = glm::normalize(camera_to_world * mouse_view_dir);
+	// figure out the intersection with Y-Z plane. Our scene is built with X = 0.
+	// shoot a ray O+tD, work out t
+	auto camera_world_pos = camera_to_world[3];
+	float t = -camera_world_pos.x / mouse_world_dir.x;
+	// get intersection position in world space
+	auto mouse_world_pos = camera_world_pos + t * mouse_world_dir;
+	return mouse_world_pos;
 }
 
 void PlayMode::SpiderAnimation(){

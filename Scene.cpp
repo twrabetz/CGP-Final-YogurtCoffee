@@ -286,6 +286,7 @@ void Scene::load(std::string const &filename,
 		camera->fovy = c.data / 180.0f * 3.1415926f; //FOV is stored in degrees; convert to radians.
 		camera->near = c.clip_near;
 		//N.b. far plane is ignored because cameras use infinite perspective matrices.
+		camera->far = c.clip_far; // Let's take it. Use it or leave it.
 	}
 
 	for (auto const &l : lights) {
