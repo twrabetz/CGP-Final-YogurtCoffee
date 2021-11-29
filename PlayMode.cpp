@@ -278,7 +278,8 @@ void PlayMode::update(float elapsed) {
 			playerAgent->velocity += upVector * jumpStrength;
 		}
 		playerAgent->velocity.y = -move.x;
-		playerAgent->velocity.x = move.y;
+		if( move.y != 0 )
+			playerAgent->velocity.x = move.y * 1.5f;
 		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
 		player->position += playerAgent->velocity * elapsed * timeFactor;
 		player->position.x = glm::clamp<float>(player->position.x, -3.0f, 0.0f);
