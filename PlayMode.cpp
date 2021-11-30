@@ -69,7 +69,7 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 });
 
 Load< Sound::Sample > PartyMusic(LoadTagEarly, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("musics/Party_in_the_house.opus"));
+	return new Sound::Sample(data_path("musics/Party_in_the_Castle.wav"));
 });
 
 Load< Sound::Sample > Cashier(LoadTagEarly, []() -> Sound::Sample const* {
@@ -282,7 +282,7 @@ void PlayMode::update(float elapsed) {
 			playerAgent->velocity.x = move.y * 1.5f;
 		playerAgent->velocity -= upVector * gravity * elapsed * timeFactor;
 		player->position += playerAgent->velocity * elapsed * timeFactor;
-		player->position.x = glm::clamp<float>(player->position.x, -3.0f, 0.0f);
+		player->position.x = glm::clamp<float>(player->position.x, -2.89356f, 0.004437f);
 		//std::cout << to_string(player->position) << std::endl;
 		if (player->position.z < -30.0f)
 		{
@@ -315,6 +315,7 @@ void PlayMode::update(float elapsed) {
 	{
 		glm::vec3 mousePos = get_mouse_position();
 		glm::vec3 dir = glm::normalize(mousePos - player->position);
+		dir.x = 0;
 		heldDrunkPerson->launch(dir * 100.0f);
 		heldDrunkPerson = nullptr;
 		Sound::play(*throws[rand() % throws.size()]);

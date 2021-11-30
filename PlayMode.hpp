@@ -88,7 +88,7 @@ struct PlayMode : Mode {
 	CollisionManager collisionManager = CollisionManager();
 
 	Scene::Transform* aimingCone = nullptr;
-	float aimingConeDistance = 3.5f;
+	float aimingConeDistance = 5.0f;
 
 	float xMouseTravel = 0.0f;
 	float yMouseTravel = 0.0f;
