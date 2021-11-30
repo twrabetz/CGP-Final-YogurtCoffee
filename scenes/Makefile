@@ -25,8 +25,8 @@ all : \
 	$(DIST)/SquidgeBall.scene \
 
 
-$(DIST)/SquidgeBall.scene : SquidgeBall_chen.blend $(EXPORT_SCENE)
+$(DIST)/SquidgeBall.scene : SquidgeBall.blend $(EXPORT_SCENE)
 	$(BLENDER) --background --python $(EXPORT_SCENE) -- '$<' '$@'
 
-$(DIST)/SquidgeBall.pnct : SquidgeBall_chen.blend $(EXPORT_MESHES)
+$(DIST)/SquidgeBall.pnct : SquidgeBall.blend $(EXPORT_MESHES)
 	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<' '$@'
