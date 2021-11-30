@@ -3,6 +3,7 @@
 #include "LitColorTextureProgram.hpp"
 #include "BasePassProgram.hpp"
 #include "LightingPassProgram.hpp"
+#include "PostPassProgram.hpp"
 #include "screen_quad_helper.hpp"
 
 #include "DrawLines.hpp"
@@ -504,26 +505,56 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	GL_ERRORS();
 
-	// ---- debug: draw buffer onto screen
+	// ---- Post-processing pass ----
+	// // prepare
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+
 	glClearColor(.2f, .2f, .2f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-
-	// use copy program
-	glUseProgram(screen_quad->copy_program);
-	// bind screen quad vertices
+	
+	glUseProgram(post_pass_program->program);
+	// set up vertices & textures
 	glBindVertexArray(screen_quad->vao);
-	// bind texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fbs.output_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbs.position_tex);
+	
 	// draw
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
 	// clean
 	glUseProgram(0);
 	glBindVertexArray(0);
+	
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GL_ERRORS();
+
+	// ---- debug: draw buffer onto screen
+	// glClearColor(.2f, .2f, .2f, 0.f);
+	// glClear(GL_COLOR_BUFFER_BIT);
+
+	// glDisable(GL_BLEND);
+	// glDisable(GL_DEPTH_TEST);
+
+	// // use copy program
+	// glUseProgram(screen_quad->copy_program);
+	// // bind screen quad vertices
+	// glBindVertexArray(screen_quad->vao);
+	// // bind texture
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_2D, fbs.output_tex);
+	// // draw
+	// glDrawArrays(GL_TRIANGLES, 0, 6);
+	// // clean
+	// glUseProgram(0);
+	// glBindVertexArray(0);
+	// glBindTexture(GL_TEXTURE_2D, 0);
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);
