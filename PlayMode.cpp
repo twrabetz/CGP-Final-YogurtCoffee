@@ -467,7 +467,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			case Scene::Light::Point: {
 				glUniform1i(lighting_pass_program->LIGHT_TYPE_int, 0);
 				// calc light volume radius
-				constexpr float energy_thresh = 1.f / 512.f;
+				constexpr float energy_thresh = 1.f / 256.f;
 				// energy lower than threshold is considered no influence
 				float R = std::sqrt(glm::compMax(light.energy) / energy_thresh);
 				light_to_world = glm::scale(light_to_world, glm::vec3{R});
