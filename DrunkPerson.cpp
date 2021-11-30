@@ -1,6 +1,8 @@
 #include "DrunkPerson.hpp"
 #include <iostream>
 
+#include <glm/gtx/string_cast.hpp>
+
 DrunkPerson::DrunkPerson(CollisionAgent* newAgent, Scene::Transform* newTarget)
 {
 	agent = newAgent;
@@ -31,19 +33,6 @@ void DrunkPerson::pickUp()
 {
 	agent->enabled = false;
 }
-
-static std::string toString(glm::vec3 input)
-{
-	std::string res = "(";
-	res.append(std::to_string(input.x));
-	res.append(", ");
-	res.append(std::to_string(input.y));
-	res.append(", ");
-	res.append(std::to_string(input.z));
-	res.append(")");
-	return res;
-}
-
 
 void DrunkPerson::launch(glm::vec3 velocity)
 {

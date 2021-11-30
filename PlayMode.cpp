@@ -33,18 +33,6 @@ Load< ScreenQuad > screen_quad(LoadTagDefault, [](){
 });
 /** Render related components finished **/
 
-std::string toString(glm::vec3 input)
-{
-	std::string res = "(";
-	res.append(std::to_string(input.x));
-	res.append(", ");
-	res.append(std::to_string(input.y));
-	res.append(", ");
-	res.append(std::to_string(input.z));
-	res.append(")");
-	return res;
-}
-
 Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("SquidgeBall.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
 		Mesh const &mesh = meshes->lookup(mesh_name);
