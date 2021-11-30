@@ -37,7 +37,7 @@ void DrunkPerson::pickUp()
 void DrunkPerson::launch(glm::vec3 velocity)
 {
 	//agent->positionTransform->position = glm::vec3(0.004437f, agent->positionTransform->position.y, agent->positionTransform->position.z);
-	agent->positionTransform->position += glm::vec3(0, 0, 3.0f);
+	agent->positionTransform->position += glm::vec3(0, 0, 4.0f);
 	agent->velocity = velocity;
 	agent->enabled = true;
 	//std::cout << toString(agent->positionTransform->position) << std::endl;

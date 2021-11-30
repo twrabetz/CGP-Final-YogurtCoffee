@@ -82,7 +82,7 @@ PlayMode::PlayMode() : scene(*myScene) {
 	for (Scene::Transform& transform : scene.transforms) {
 		if (transform.name.find("Armature") != std::string::npos)
 			drunkPoses.push_back(&transform);
-		if (transform.name.find("DrunkPerson") != std::string::npos)
+		if (transform.name.find("DrunkPersonCollider") != std::string::npos)
 			drunkTransforms.push_back(&transform);
 		if (transform.name == "Player")
 			player = &transform;
