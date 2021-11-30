@@ -100,6 +100,9 @@ struct PlayMode : Mode {
 	float jumpStrength = 50.0f;
 
 	float timer = 120.0f;
+
+	std::vector<Scene::Transform*> drunkTransforms;
+	std::vector<Scene::Transform*> drunkPoses;
 	
 	glm::vec3 get_mouse_position() const;
 

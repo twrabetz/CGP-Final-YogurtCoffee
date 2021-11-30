@@ -80,6 +80,10 @@ Load< Sound::Sample > Throw4(LoadTagEarly, []() -> Sound::Sample const* {
 PlayMode::PlayMode() : scene(*myScene) {
 
 	for (Scene::Transform& transform : scene.transforms) {
+		if (transform.name.find("Armature") != std::string::npos)
+			drunkPoses.push_back(&transform);
+		if (transform.name.find("DrunkPerson") != std::string::npos)
+			drunkTransforms.push_back(&transform);
 		if (transform.name == "Player")
 			player = &transform;
 		if (transform.name == "CameraAnchor")
@@ -122,11 +126,8 @@ PlayMode::PlayMode() : scene(*myScene) {
 
 	std::cout << platforms.size() << std::endl;
 
-	for (Scene::Transform& transform : scene.transforms) {
-		if (transform.name.find("DrunkPerson") != std::string::npos)
-		{
-			drunkPeople.push_back(new DrunkPerson(collisionManager.registerAgent(&transform, false), player));
-		}
+	for (int i = 0; i < drunkPoses.size(); i++) {
+		drunkPeople.push_back(new DrunkPerson(collisionManager.registerAgent(drunkPoses[i], drunkTransforms[i], false), player));
 	}
 
 	playerAgent = collisionManager.registerAgent(player, playerModel, false);
