@@ -127,7 +127,7 @@ PlayMode::PlayMode() : scene(*myScene) {
 
 	std::cout << platforms.size() << std::endl;
 
-	for (int i = 0; i < drunkPoses.size(); i++) {
+	for (size_t i = 0; i < drunkPoses.size(); i++) {
 		drunkPeople.push_back(new DrunkPerson(collisionManager.registerAgent(drunkPoses[i], drunkTransforms[i], false), player));
 	}
 
