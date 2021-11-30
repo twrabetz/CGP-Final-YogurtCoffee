@@ -98,6 +98,8 @@ struct PlayMode : Mode {
 	//Using velocity only in the up-down axis
 	float gravity = 200.0f;
 	float jumpStrength = 50.0f;
+
+	float timer = 120.0f;
 	
 	glm::vec3 get_mouse_position() const;
 
