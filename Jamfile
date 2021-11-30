@@ -140,6 +140,7 @@ GAME_NAMES =
 	LitColorTextureProgram
 	BasePassProgram
 	LightingPassProgram
+	PostPassProgram
 	FrameBuffers
 	screen_quad_helper
 	Sound
