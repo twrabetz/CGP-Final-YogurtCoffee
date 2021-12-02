@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Mode.hpp"
 
 #include "Scene.hpp"

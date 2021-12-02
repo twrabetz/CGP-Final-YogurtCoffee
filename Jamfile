@@ -136,6 +136,7 @@ if $(OS) = NT { #Windows
 GAME_NAMES =
 	CollisionManager
 	PlayMode
+	GP21IntroMode
 	main
 	LitColorTextureProgram
 	BasePassProgram
