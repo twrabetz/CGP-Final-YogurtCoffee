@@ -58,7 +58,7 @@ Load< Scene > myScene(LoadTagDefault, []() -> Scene const * {
 });
 
 Load< Sound::Sample > PartyMusic(LoadTagEarly, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("musics/Party_in_the_Castle.wav"));
+	return new Sound::Sample(data_path("musics/Party_in_the_Castle.opus"));
 });
 
 Load< Sound::Sample > Cashier(LoadTagEarly, []() -> Sound::Sample const* {
