@@ -48,7 +48,7 @@ struct PlayMode : Mode {
 	Scene::Camera *camera = nullptr;
 	Scene::Transform* cameraAnchor = nullptr;
 	// damping factor (0, 1). Approximately camera will approach to desination in 10*a seconds.
-	static constexpr float camera_move_damp = 0.01f;
+	static constexpr float camera_move_damp = 0.05f;
 
 	//----- game state -----
 
