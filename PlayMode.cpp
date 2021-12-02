@@ -338,6 +338,9 @@ void PlayMode::update(float elapsed) {
 				std::cout << "hit";
 				score ++;
 				drunkPerson->inTrashBin(trashCan->positionTransform);
+				numInTrash++;
+				if (numInTrash >= drunkPeople.size() - 2)
+					win = true;
 				heldDrunkPerson = nullptr;
 				collisionManager.unregisterAgent(drunkPerson->agent, false);
 				break;
@@ -375,11 +378,12 @@ void PlayMode::update(float elapsed) {
 	//update timer
 	timer -= elapsed;
 
-	//if( timer <= 0 )
-		//lose
+	if (timer <= 0)
+		lose = true;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
+
 	//update camera aspect ratio for drawable:
 	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
@@ -594,6 +598,14 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(-aspect + 10.0f * H, 0.9f - 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xbd, 0xd6, 0xff, 0x00));
+
+		if (win || lose)
+		{
+			lines.draw_text(win ? "You Win!" : "You Lose!",
+				glm::vec3(0.0, 0.0, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xbd, 0xd6, 0xff, 0x00));
+		}
 	}
 }
 
