@@ -1,8 +1,8 @@
-# SquidgeBall
+# Chunk
 
-Author: Thomas Wrabetz
+Team Chunk: Thomas Wrabetz, Hao Chen, Liang-Yen Chou, Chih-Hsuan Kuo
 
-Design: It's a squishy ball
+You are a six legged housekeeping robot, and there are some drunk people either standing or lying on the ground. Try to throw all of the drunk people into the trash bins!
 
 Screen Shot:
 
@@ -10,7 +10,11 @@ Screen Shot:
 
 How To Play:
 
-WASD to move, click the mouse and then move it to rotate camera. Space to jump. The ball is squishy and the further you fall, the further you bounce back up. Reach the red platform to win (spiritually, that is). If you can't reach the red platform, try again, because as you can see by the screenshot it's totally possible.
+- Use A/D to move left/right
+- Use S/W to move forward/backward
+- Use Space to jump
+- Left click the mouse to launch the person
+- Press shift to active the time control
 
 Sources: No external assets.
 
