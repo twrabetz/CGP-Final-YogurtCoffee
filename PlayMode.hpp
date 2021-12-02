@@ -108,7 +108,7 @@ struct PlayMode : Mode {
 
 	bool win = false;
 	bool lose = false;
-	int numInTrash = 0;
+	size_t numInTrash = 0;
 	
 	glm::vec3 get_mouse_position() const;
 
